@@ -31,14 +31,16 @@ let models = undefined;
 // load STL models from serverside
 $.get("./models", function (model_data) {
     models = model_data;
+    console.log(models.sphere.vertices.length);
+    console.log(models.threeSquares.vertices);
+    console.log(models.flower.vertices.length);
 });
 
 // load a specific STL model (as JS object) into the program
 function initVertexBuffersFromModel(gl, model) {
     let vertices = new Float32Array(model.vertices);
-    let colors = new Float32Array(model.colors);
     let indices = new Uint8Array(model.indices);
-
+    let colors = new Float32Array(model.colors);
     // Create a buffer object
     var indexBuffer = gl.createBuffer();
     if (!indexBuffer)
@@ -87,7 +89,6 @@ function main() {
     }
 
 
-
     // Set the clear color and enable the depth test
     gl.clearColor(0.0, 0.0, 0.0, 1.0);
     gl.enable(gl.DEPTH_TEST);
@@ -103,22 +104,43 @@ function main() {
     // Calculate the view projection matrix
     var viewProjMatrix = new Matrix4();
     // may need to modify near/far values to ensure proper rendering of "large" objects
-    viewProjMatrix.setPerspective(30.0, canvas.width / canvas.height, 1.0, 100.0);
-    viewProjMatrix.lookAt(10.0, 10.0, 30.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
+    viewProjMatrix.setPerspective(30.0, canvas.width / canvas.height, 0.2, 100.0);
+    viewProjMatrix.lookAt(3.0, 3.0, 5.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
 
     gl.uniform1i(u_Clicked, 0); // Pass false to u_Clicked
 
     var currentAngle = 0.0; // Current rotation angle
     // Register the event handler
-
-    var tick = function () {   // Start drawing
-        currentAngle = animate(currentAngle);
-        draw2D(ctx, currentAngle); // Draw 2D
-        draw(gl, currentAngle, viewProjMatrix, u_MvpMatrix);
-        requestAnimationFrame(tick, canvas);
+    let speed= 1;
+    function tick() {   // Start drawing
+        console.log(speed);
+        if (speed){
+            currentAngle = animate(currentAngle);
+            draw2D(ctx, currentAngle); // Draw 2D
+            draw(gl, currentAngle, viewProjMatrix, u_MvpMatrix);
+            requestAnimationFrame(tick, canvas);
+        }
+    }
+    // "Pause" functionality
+    document.onkeydown = function (ev) {
+        console.log(ev.key);
+        switch (ev.key) {
+            case "p":
+                speed++;
+                speed%=2;
+                break;
+            default:
+                speed = 1;
+        }
+        if (speed){
+            tick();
+        }
     };
+
     tick();
 }
+
+
 
 function initVertexBuffers(gl) {
     // Create a cube
@@ -175,11 +197,24 @@ function initVertexBuffers(gl) {
 
 var g_MvpMatrix = new Matrix4(); // Model view projection matrix
 function draw(gl, currentAngle, viewProjMatrix, u_MvpMatrix) {
+    //draw stage
+    var n = initVertexBuffers(gl);
+    if (n < 0) {
+        console.log('Failed to set the vertex information');
+        return;
+    }
+    // Calculate The model view projection matrix and pass it to u_MvpMatrix
+    g_MvpMatrix.set(viewProjMatrix);
+    g_MvpMatrix.translate(-3, -2, -5);
+    g_MvpMatrix.scale(5, 0.1, 5);
+    gl.uniformMatrix4fv(u_MvpMatrix, false, g_MvpMatrix.elements);
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);     // Clear buffers (color and depth)
+    gl.drawElements(gl.TRIANGLES, n, gl.UNSIGNED_BYTE, 0);   // Draw
     // Set the vertex information
     var n = initVertexBuffers(gl);
     // async means model may not have been loaded from "server" yet
-    if (models){
-        n = initVertexBuffersFromModel(gl, models.flower);
+    if (models) {
+        n = initVertexBuffersFromModel(gl, models.rotated_cube);
     }
     if (n < 0) {
         console.log('Failed to set the vertex information');
@@ -190,9 +225,28 @@ function draw(gl, currentAngle, viewProjMatrix, u_MvpMatrix) {
     g_MvpMatrix.rotate(currentAngle, 1.0, 0.0, 0.0); // Rotate appropriately
     g_MvpMatrix.rotate(currentAngle, 0.0, 1.0, 0.0);
     g_MvpMatrix.rotate(currentAngle, 0.0, 0.0, 1.0);
+    g_MvpMatrix.translate(0, 1, 2);
     g_MvpMatrix.scale(0.1, 0.1, 0.1);
     gl.uniformMatrix4fv(u_MvpMatrix, false, g_MvpMatrix.elements);
-    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);     // Clear buffers (color and depth)
+    //gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);     // Clear buffers (color and depth)
+    gl.drawElements(gl.TRIANGLES, n, gl.UNSIGNED_BYTE, 0);   // Draw
+    var n = initVertexBuffers(gl);
+    // async means model may not have been loaded from "server" yet
+    if (models) {
+        n = initVertexBuffersFromModel(gl, models.threeSquares);
+    }
+    if (n < 0) {
+        console.log('Failed to set the vertex information');
+        return;
+    }
+    // Calculate The model view projection matrix and pass it to u_MvpMatrix
+    g_MvpMatrix.set(viewProjMatrix);
+    g_MvpMatrix.rotate(currentAngle + 10 % 360, 1.0, 0.0, 0.0); // Rotate appropriately
+    g_MvpMatrix.rotate(currentAngle + 10 % 360, 0.0, 1.0, 0.0);
+    g_MvpMatrix.rotate(currentAngle + 10 % 360, 0.0, 0.0, 1.0);
+    g_MvpMatrix.scale(0.1, 0.1, 0.1);
+    gl.uniformMatrix4fv(u_MvpMatrix, false, g_MvpMatrix.elements);
+    //gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);     // Clear buffers (color and depth)
     gl.drawElements(gl.TRIANGLES, n, gl.UNSIGNED_BYTE, 0);   // Draw
 }
 
@@ -242,4 +296,54 @@ function initArrayBuffer(gl, data, num, type, attribute) {
     gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
     return true;
+}
+
+
+function initAxesVertexBuffers(gl) {
+
+    var verticesColors = new Float32Array([
+        // Vertex coordinates and color (for axes)
+        -20.0, 0.0, 0.0, 1.0, 1.0, 1.0,  // (x,y,z), (r,g,b)
+        20.0, 0.0, 0.0, 1.0, 1.0, 1.0,
+        0.0, 20.0, 0.0, 1.0, 1.0, 1.0,
+        0.0, -20.0, 0.0, 1.0, 1.0, 1.0,
+        0.0, 0.0, -20.0, 1.0, 1.0, 1.0,
+        0.0, 0.0, 20.0, 1.0, 1.0, 1.0
+    ]);
+    var n = 6;
+
+    // Create a buffer object
+    var vertexColorBuffer = gl.createBuffer();
+    if (!vertexColorBuffer) {
+        console.log('Failed to create the buffer object');
+        return false;
+    }
+
+    // Bind the buffer object to target
+    gl.bindBuffer(gl.ARRAY_BUFFER, vertexColorBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, verticesColors, gl.STATIC_DRAW);
+
+    var FSIZE = verticesColors.BYTES_PER_ELEMENT;
+    //Get the storage location of a_Position, assign and enable buffer
+    var a_Position = gl.getAttribLocation(gl.program, 'a_Position');
+    if (a_Position < 0) {
+        console.log('Failed to get the storage location of a_Position');
+        return -1;
+    }
+    gl.vertexAttribPointer(a_Position, 3, gl.FLOAT, false, FSIZE * 6, 0);
+    gl.enableVertexAttribArray(a_Position);  // Enable the assignment of the buffer object
+
+    // Get the storage location of a_Position, assign buffer and enable
+    var a_Color = gl.getAttribLocation(gl.program, 'a_Color');
+    if (a_Color < 0) {
+        console.log('Failed to get the storage location of a_Color');
+        return -1;
+    }
+    gl.vertexAttribPointer(a_Color, 3, gl.FLOAT, false, FSIZE * 6, FSIZE * 3);
+    gl.enableVertexAttribArray(a_Color);  // Enable the assignment of the buffer object
+
+    // Unbind the buffer object
+    gl.bindBuffer(gl.ARRAY_BUFFER, null);
+
+    return n;
 }
