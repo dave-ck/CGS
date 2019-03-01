@@ -1,5 +1,17 @@
-rotate([0,15, 30])
-cube(3);
+dep = 3;
+
+for(x=[0:dep]){
+    for(y=[0:dep]){
+        for(z=[0:dep]){
+            translate([x,y,z])
+            rotate([0,15, 30])
+            cube(0.5);
+    
+        }
+    }    
+}
+
+
 
 module Logo(size=10, $fn=5) {
     // Temporary variables

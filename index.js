@@ -19,8 +19,6 @@ function processFacet(facetString, index) {
     };
 }
 
-
-
 function lookupFacetProcess(facetString, index) {
     let facet = facetString.split(/\s/);
     let i_normal = facet.indexOf("normal");
@@ -68,7 +66,6 @@ function readSTL(source_path) {
     let vertices = [];
     let normals = [];
     let indices = [];       //completely redundant in this case, can be optimized if rendering per-frame becomes slow
-    let colors = [];        // set colors to be = normal*255 in RGB space - temporary, should be obvious to identify if incomplete
     let facetArray = data.split("endfacet\r\n  facet");
     //console.log(facetArray.slice(0,10));
     // facet0 requires special processing - need to remove header info
@@ -78,31 +75,45 @@ function readSTL(source_path) {
         let facet = processFacet(facetString, index);
         vertices = vertices.concat(facet.vertices);
         normals = normals.concat(facet.normals);
-        // colors = colors.concat(facet.vertices.map((i) => Math.abs(i * 255)));
-        for (let i = 0; i < 3; i++){
-            colors.push(144);
-            colors.push(255);
-            colors.push(0);
-        }
         indices.push(indexCount++);
         indices.push(indexCount++);
         indices.push(indexCount++);
     });
     // normals may be wrong, but aren't causing current bug (not used in present rendering)
-    return {normals: normals, vertices: vertices, colors: colors, indices: indices};
+    return {normals: normals, vertices: vertices, indices: indices};
+}
+
+
+// generate a "dummy" 3D model with
+function genDummy(size){
+    let vertices = [];
+    let indices = [];       //completely redundant in this case, can be optimized if rendering per-frame becomes slow
+    for (let i=0.0; i<size; i++){
+        vertices = vertices.concat([i, i, i+1, i, i+1, i, i+1, i, i]);
+        indices.push(i*3);
+        indices.push(i*3+1);
+        indices.push(i*3+2);
+    }
+    // normals may be wrong, but aren't causing current bug (not used in present rendering)
+    return {vertices:vertices, indices: indices};
 }
 
 let models = {
     pointy: readSTL("./STL_Sources/pointy.stl"),
     flower: readSTL("./STL_Sources/flower.stl"),
+    sphere: readSTL("./STL_Sources/sphere.stl"),
+
+    /*threeSquares: readSTL("./STL_Sources/threesquares.stl"),
     gear1: readSTL("./STL_Sources/gear1.stl"),
     scadLogo: readSTL("./STL_Sources/scadLogo.stl"),
-    threeSquares: readSTL("./STL_Sources/threesquares.stl"),
     logoAndCubes: readSTL("./STL_Sources/logo_and_cubes.stl"),
-    sphere: readSTL("./STL_Sources/sphere.stl"),
     rotated_cube: readSTL("./STL_Sources/rotated_cube.stl"),
+    function_cubes: readSTL("./STL_Sources/manyCubes_function.stl"),
+    cubeOfCubes: readSTL("./STL_Sources/cubeOfCubes.stl"),*/
+    cube64: readSTL("./STL_Sources/cube64.stl"),
+    dummy10: genDummy(10),
+    dummy1000: genDummy(1000),
 };
-
 
 app.get('/models', function (request, response) {
     response.send(models);
@@ -111,9 +122,6 @@ app.get('/models', function (request, response) {
 const port = process.env.PORT || 8080;
 app.listen(port);
 
-let dev = devSTL("./STL_Sources/scadLogo.stl");
-let hard = readSTL("./STL_Sources/scadLogo.stl");
-console.log(dev.toString() === hard.toString());
-console.log(dev.vertices.length);
+console.log(JSON.stringify(genDummy(10)));
 
-console.log("\nDone.");
+console.log("\nDone loading models. Ready to .get().");
