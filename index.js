@@ -102,9 +102,8 @@ let models = {
     pointy: readSTL("./STL_Sources/pointy.stl"),
     flower: readSTL("./STL_Sources/flower.stl"),
     sphere: readSTL("./STL_Sources/sphere.stl"),
-
-    /*threeSquares: readSTL("./STL_Sources/threesquares.stl"),
-    gear1: readSTL("./STL_Sources/gear1.stl"),
+    threeSquares: readSTL("./STL_Sources/threesquares.stl"),
+    /*gear1: readSTL("./STL_Sources/gear1.stl"),
     scadLogo: readSTL("./STL_Sources/scadLogo.stl"),
     logoAndCubes: readSTL("./STL_Sources/logo_and_cubes.stl"),
     rotated_cube: readSTL("./STL_Sources/rotated_cube.stl"),
@@ -122,6 +121,5 @@ app.get('/models', function (request, response) {
 const port = process.env.PORT || 8080;
 app.listen(port);
 
-console.log(JSON.stringify(genDummy(10)));
 
 console.log("\nDone loading models. Ready to .get().");
