@@ -54,17 +54,6 @@ function main() {
         console.log('Failed to intialize shaders.');
         return;
     }
-
-    // Set the vertex coordinates and color (the blue triangle is in the front)
-    var n = initVertexBuffers(gl);
-    if (models) {
-        n = initVertexBuffersFromModel(gl, models.threeSquares);
-    }
-    if (n < 0) {
-        console.log('Failed to set the vertex information');
-        return;
-    }
-
     //Set clear color and enable the hidden surface removal function
     gl.clearColor(0, 0, 0, 1);
     gl.enable(gl.DEPTH_TEST);
@@ -78,26 +67,55 @@ function main() {
 
     var viewProjMatrix = new Matrix4();
     // Set the eye point, look-at point, and up vector.
-    viewProjMatrix.setPerspective(30, canvas.width / canvas.height, 1, 100);
-    viewProjMatrix.lookAt(3.06, 2.5, 10.0, 0, 0, -2, 0, 1, 0);
+    viewProjMatrix.setPerspective(15, canvas.width / canvas.height, 1, 1000);
+    viewProjMatrix.lookAt(30, 0, 30, 50, 250, 0, 0, 0, 1);
 
     // Pass the view projection matrix to u_ViewProjMatrix
     gl.uniformMatrix4fv(u_ViewProjMatrix, false, viewProjMatrix.elements);
 
+    // Set the vertex coordinates and color (the blue triangle is in the front)
+    var n = initVertexBuffers(gl);
+
+    if (models) {
+        n = initVertexBuffersFromModel(gl, models.river, 53 / 255, 95 / 255, 173 / 255);
+    }
+    if (n < 0) {
+        console.log('Failed to set the vertex information');
+        return;
+    }
     // Clear color and depth buffer
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-    // Enable the polygon offset function
-    gl.enable(gl.POLYGON_OFFSET_FILL);
     // Draw the triangles
-    gl.drawArrays(gl.TRIANGLES, 0, n / 2);   // The green triangle
-    gl.polygonOffset(1.0, 1.0);          // Set the polygon offset
-    gl.drawArrays(gl.TRIANGLES, n / 2, n / 2); // The yellow triangle
+    gl.drawArrays(gl.TRIANGLES, 0, n);
+
+    if(models){
+        n = initVertexBuffersFromModel(gl, models.westBank, 153 / 255, 83/ 255, 4 / 255);
+        // Draw the triangles
+        gl.drawArrays(gl.TRIANGLES, 0, n);
+        n = initVertexBuffersFromModel(gl, models.path, 0,0,0);
+        // Draw the triangles
+        gl.drawArrays(gl.TRIANGLES, 0, n);
+        n = initVertexBuffersFromModel(gl, models.westSlope, 4 / 255, 153/ 255, 83 / 255);
+        // Draw the triangles
+        gl.drawArrays(gl.TRIANGLES, 0, n);
+
+    }
+
 }
 
 
-
-function paramdMain(backRGBA={r:0, g:0, b:0, a:1}, lookAtPar={ix:3.06, iy:2.5, iz:10.0, cx:0, cy:0, cz:-2, ux:0, uy:1, uz:0}) {
+function paramdMain(backRGBA = {r: 0, g: 0, b: 0, a: 1}, lookAtPar = {
+    ix: 3.06,
+    iy: 2.5,
+    iz: 10.0,
+    cx: 0,
+    cy: 0,
+    cz: -2,
+    ux: 0,
+    uy: 1,
+    uz: 0
+}) {
     // Retrieve <canvas> element
     var canvas = document.getElementById('webgl');
 
@@ -117,7 +135,7 @@ function paramdMain(backRGBA={r:0, g:0, b:0, a:1}, lookAtPar={ix:3.06, iy:2.5, i
     // Set the vertex coordinates and color (the blue triangle is in the front)
     var n = initVertexBuffers(gl);
     if (models) {
-        n = initVertexBuffersFromModel(gl, models.cube64);
+        n = initVertexBuffersFromModel(gl, models.river);
     }
     if (n < 0) {
         console.log('Failed to set the vertex information');
@@ -150,9 +168,9 @@ function paramdMain(backRGBA={r:0, g:0, b:0, a:1}, lookAtPar={ix:3.06, iy:2.5, i
     // Enable the polygon offset function
     gl.enable(gl.POLYGON_OFFSET_FILL);
     // Draw the triangles
-    gl.drawArrays(gl.TRIANGLES, 0, n / 2);   // The green triangle
-    gl.polygonOffset(1.0, 1.0);          // Set the polygon offset
-    gl.drawArrays(gl.TRIANGLES, n / 2, n / 2); // The yellow triangle
+    gl.drawArrays(gl.TRIANGLES, 0, n / 2);          // The green triangle
+    gl.polygonOffset(1.0, 1.0);        // Set the polygon offset
+    gl.drawArrays(gl.TRIANGLES, n / 2, n / 2);      // The yellow triangle
 
 }
 
@@ -213,9 +231,9 @@ function color(vertices, r, g, b) {
     let coloredVertices = [];
     n = vertices.length;
     for (let i = 0; i < (n / 3); i++) {
-        coloredVertices.push(vertices[i*3]);
-        coloredVertices.push(vertices[i*3 + 1]);
-        coloredVertices.push(vertices[i*3 + 2]);
+        coloredVertices.push(vertices[i * 3]);
+        coloredVertices.push(vertices[i * 3 + 1]);
+        coloredVertices.push(vertices[i * 3 + 2]);
         coloredVertices.push(r);
         coloredVertices.push(g);
         coloredVertices.push(b);
@@ -224,8 +242,9 @@ function color(vertices, r, g, b) {
 }
 
 
-function initVertexBuffersFromModel(gl, model) {
-    var verticesColors = new Float32Array(color(model.vertices, 0.4, 1, 0.4));
+function initVertexBuffersFromModel(gl, model, r, g, b) {
+    console.log(r,g,b);
+    var verticesColors = new Float32Array(color(model.vertices, r,g,b));
     var n = verticesColors.length / 6;
 
     // Create a buffer object

@@ -106,7 +106,7 @@ function main() {
     var viewProjMatrix = new Matrix4();
     // may need to modify near/far values to ensure proper rendering of "large" objects
     viewProjMatrix.setPerspective(45.0, canvas.width / canvas.height, 0.2, 100.0);
-    viewProjMatrix.lookAt(5.0, 10.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
+    viewProjMatrix.lookAt(30.0, 10.0, 10.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
 
     gl.uniform1i(u_Clicked, 0); // Pass false to u_Clicked
 
@@ -125,20 +125,6 @@ function main() {
     }
 
     // "Pause" functionality
-    document.onkeydown = function (ev) {
-        console.log(ev.key);
-        switch (ev.key) {
-            case "p":
-                speed++;
-                speed %= 2;
-                break;
-            default:
-                speed = 1;
-        }
-        if (speed) {
-            tick();
-        }
-    };
 
     tick();
 }

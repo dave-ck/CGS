@@ -110,8 +110,11 @@ let models = {
     function_cubes: readSTL("./STL_Sources/manyCubes_function.stl"),
     cubeOfCubes: readSTL("./STL_Sources/cubeOfCubes.stl"),*/
     cube64: readSTL("./STL_Sources/cube64.stl"),
-    dummy10: genDummy(10),
-    dummy1000: genDummy(1000),
+    river: readSTL("./STL_Sources/river.stl"),
+    westBank: readSTL("./STL_Sources/westBank.stl"),
+    westSlope: readSTL("./STL_Sources/westSlope.stl"),
+    path: readSTL("./STL_Sources/footpath.stl"),
+
 };
 
 app.get('/models', function (request, response) {
