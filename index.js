@@ -100,16 +100,16 @@ function genDummy(size){
 
 let models = {
     pointy: readSTL("./STL_Sources/pointy.stl"),
-    flower: readSTL("./STL_Sources/flower.stl"),
-    sphere: readSTL("./STL_Sources/sphere.stl"),
     threeSquares: readSTL("./STL_Sources/threesquares.stl"),
     /*gear1: readSTL("./STL_Sources/gear1.stl"),
+    flower: readSTL("./STL_Sources/flower.stl"),
     scadLogo: readSTL("./STL_Sources/scadLogo.stl"),
     logoAndCubes: readSTL("./STL_Sources/logo_and_cubes.stl"),
     rotated_cube: readSTL("./STL_Sources/rotated_cube.stl"),
     function_cubes: readSTL("./STL_Sources/manyCubes_function.stl"),
-    cubeOfCubes: readSTL("./STL_Sources/cubeOfCubes.stl"),*/
     cube64: readSTL("./STL_Sources/cube64.stl"),
+    sphere: readSTL("./STL_Sources/sphere.stl"),
+    cubeOfCubes: readSTL("./STL_Sources/cubeOfCubes.stl"),*/
     river: readSTL("./STL_Sources/river.stl"),
     westBank: readSTL("./STL_Sources/westBank.stl"),
     westSlope: readSTL("./STL_Sources/westSlope.stl"),
