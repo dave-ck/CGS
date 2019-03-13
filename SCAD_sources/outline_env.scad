@@ -3,18 +3,17 @@ sizeFactor = 1.1;
 gamma = 30;
 chungus = 8;
 k = 4;
+smallN=50;
 maxLen = 10;
 lowR = 0.8;
 upR = 1.2;
 killRatio = 2; // number of branches killed per surviving branch - needs to be < 3 to probabilistically allow for full tree
-
 main();
 
-
 module trees(branches = true, leaves=true){
-    eastCenterTrees(n=30, scale=0.3);
-    eastNorthTrees(n=30, scale=0.3);
-    westTrees(n=100, scale=0.3);
+    eastCenterTrees(n=smallN, , branches=branches, leaves=leaves, scale=0.3);
+    eastNorthTrees(n=smallN, , branches=branches, leaves=leaves, scale=0.3);
+    westTrees(n=(3*smallN), , branches=branches, leaves=leaves, scale=0.3);
     }
     
 module main(){
@@ -22,8 +21,8 @@ module main(){
     river();
     paved();
     riverBank();
-        westSlope(); 
-        eastSlope();
+    westSlope(); 
+    eastSlope();
     }
     
     
@@ -57,7 +56,7 @@ module eastNorthTrees(n, branches=true, leaves=true, scale=1){
 
 
 
-module tree(xpos, ypos, zpos, leaves=true, branches=true, scale){
+module tree(xpos, ypos, zpos, branches=true, leaves=true, scale){
     // "unique" within 
     randFactors = rands(lowR, upR, 500, (xpos+ypos)%zpos);
     randProbs = rands(0, killRatio, 500, (xpos+zpos)/ypos);

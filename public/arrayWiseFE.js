@@ -68,7 +68,7 @@ function main() {
     var viewProjMatrix = new Matrix4();
     // Set the eye point, look-at point, and up vector.
     viewProjMatrix.setPerspective(30, canvas.width / canvas.height, 1, 1000);
-    viewProjMatrix.lookAt(-100, -100, 30, 0, 50, 20, 0, 0, 1);
+    viewProjMatrix.lookAt(400, 200, 70, 0, 50, 20, 0, 0, 1);
 
     // Pass the view projection matrix to u_ViewProjMatrix
     gl.uniformMatrix4fv(u_ViewProjMatrix, false, viewProjMatrix.elements);
@@ -85,11 +85,11 @@ function main() {
         document.getElementById("space").hidden = true;
         gl.drawArrays(gl.LINES, indices.axes.start, indices.axes.len);
         draw(gl, "river", indices);
-        draw(gl, "branches", indices);
-        draw(gl, "leaves", indices);
-        draw(gl, "westSlope", indices);
-        draw(gl, "westBank", indices);
-        draw(gl, "path", indices);
+        draw(gl, "branches50", indices);
+        draw(gl, "leaves50", indices);
+        draw(gl, "slopes", indices);
+        draw(gl, "riverBank", indices);
+        draw(gl, "footPath", indices);
     } else {
         console.log("Models not yet loaded");
         gl.drawArrays(gl.TRIANGLES, indices.green.start, indices.green.end);
@@ -228,33 +228,35 @@ function initVertexBuffersFromModels(gl) {
             let g = 0;
             let b = 0;
             switch (key) {
-                case "branches":
-                    r = 181 / 255;
-                    g = 123 / 255;
-                    b = 48 / 255;
+                case "branches50":
+                    r = 158 / 255;
+                    g = 115 / 255;
+                    b = 17 / 255;
                     break;
                 case "river":
-                    b = 255;    // pick a better/more detailed color later
+                    r = 17 / 255;
+                    g = 90 / 255;
+                    b = 158 / 255;
                     break;
-                case "westBank":
-                    r = 143 / 255;
+                case "riverBank":
+                    r = 103 / 255;
                     g = 181 / 255;
                     b = 48 / 255;
                     break;
-                case "leaves":
-                    r = 10 / 255;
-                    g = 240 / 255;
-                    b = 75 / 255;
+                case "leaves50":
+                    r = 0 / 255;
+                    g = 128 / 255;
+                    b = 0 / 255;
                     break;
-                case "westSlope":
-                    r = 89 / 255;
-                    g = 63 / 255;
-                    b = 15 / 255;
+                case "slopes":
+                    r = 34 / 255;
+                    g = 139 / 255;
+                    b = 34 / 255;
                     break;
-                case "path":
-                    r = 1 / 255;
-                    g = 1 / 255;
-                    b = 1 / 255;
+                case "footPath":
+                    r = 128 / 255;
+                    g = 128 / 255;
+                    b = 128 / 255;
                     break;
                 default:
                     console.log("Proceeding with random coloration.");
