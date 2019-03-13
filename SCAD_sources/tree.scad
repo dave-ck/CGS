@@ -5,7 +5,7 @@ k = 4;
 maxLen = 10;
 lowR = 0.8;
 upR = 1.2;
-killRatio = 2.5; // number of branches killed per surviving branch - needs to be < 3 to probabilistically allow for full tree
+killRatio = 1.5; // number of branches killed per surviving branch - needs to be < 3 to probabilistically allow for full tree
 for (i = rands(0,200, 4, 923831)){
     for (j = rands(0,200, 4, 12983764+i)){
         randFactors = rands(lowR, upR, 5000, i*j);
@@ -13,7 +13,6 @@ for (i = rands(0,200, 4, 923831)){
         translate([i*j%200,j,0])
         twisty(3, leaves = true, branches = true, randFactors=randFactors, randProbs=randProbs);
     }
-
 }
 
 color("green") cube([200,200,1]);
@@ -30,30 +29,40 @@ module twisty(levels, lastLen=maxLen, i=0, xRoot = 0, yRoot = 0, zRoot=0, alpha=
     alphaShift = gamma * randFactors[randi+1];
     betaShift = gamma * randFactors[randi+2];
     randi = randi + 3;
- 
-        if (i<levels){
-            // with some probability, don't do each/any of these
-            twisty(levels, branchLen, i+1, xRoot+xShift, yRoot-yShift, zRoot+zShift, alpha+alphaShift, beta + betaShift, (randi*67)%4229, leaves, branches, randFactors, randProbs);   
-            twisty(levels, branchLen, i+1, xRoot+xShift, yRoot-yShift, zRoot+zShift, alpha+alphaShift, beta - betaShift, (randi*61)%3709, leaves, branches, randFactors, randProbs);
-            twisty(levels, branchLen, i+1, xRoot+xShift, yRoot-yShift, zRoot+zShift, alpha-alphaShift, beta + betaShift, (randi*29)%3889, leaves, branches, randFactors, randProbs);
-            twisty(levels, branchLen, i+1, xRoot+xShift, yRoot-yShift, zRoot+zShift, alpha-alphaShift, beta - betaShift, (randi*13)%4679, leaves, branches, randFactors, randProbs);
-            
+ 	childless = true;
+    if (i<levels){
+    // with some probability, don't do each/any of these
+        if(randProbs[randi] < 1){
+			twisty(levels, branchLen, i+1, xRoot+xShift, yRoot-yShift, zRoot+zShift, alpha+alphaShift, beta + betaShift, (randi*67)%4229, leaves, branches, randFactors, randProbs);
+			childless = false;
+		}
+        if(randProbs[randi+1] < 1){
+			twisty(levels, branchLen, i+1, xRoot+xShift, yRoot-yShift, zRoot+zShift, alpha+alphaShift, beta - betaShift, (randi*61)%3709, leaves, branches, randFactors, randProbs);
+			childless = false;
+		}
+        if(randProbs[randi+2] < 1){
+			twisty(levels, branchLen, i+1, xRoot+xShift, yRoot-yShift, zRoot+zShift, alpha-alphaShift, beta + betaShift, (randi*29)%3889, leaves, branches, randFactors, randProbs);
+			childless = false;
+		}
+		if(randProbs[randi+3] < 1){
+			twisty(levels, branchLen, i+1, xRoot+xShift, yRoot-yShift, zRoot+zShift, alpha-alphaShift, beta - betaShift, (randi*13)%4679, leaves, branches, randFactors, randProbs);
+			childless = false;
+		}
         }
-        else if (leaves){  // draw a leaf at the end of the branch drawn below
-            leaf(i+1, xRoot+xShift, yRoot-yShift, zRoot+zShift, alpha+alphaShift,  beta + betaShift);
-            leaf(i+1, xRoot+xShift, yRoot-yShift, zRoot+zShift, alpha+alphaShift,  beta - betaShift);
-            leaf(i+1, xRoot+xShift, yRoot-yShift, zRoot+zShift, alpha-alphaShift,  beta + betaShift);
-            leaf(i+1, xRoot+xShift, yRoot-yShift, zRoot+zShift, alpha-alphaShift,  beta - betaShift);
+    if (leaves && childless && i>1){  // draw a leaf at the end of each branch drawn below
+        leaf(i+1, xRoot+xShift, yRoot-yShift, zRoot+zShift, alpha+alphaShift,  beta + betaShift);
+        leaf(i+1, xRoot+xShift, yRoot-yShift, zRoot+zShift, alpha+alphaShift,  beta - betaShift);
+        leaf(i+1, xRoot+xShift, yRoot-yShift, zRoot+zShift, alpha-alphaShift,  beta + betaShift);
+        leaf(i+1, xRoot+xShift, yRoot-yShift, zRoot+zShift, alpha-alphaShift,  beta - betaShift);
         }
-        if (branches){
-            color("brown"){
-            translate([xRoot, yRoot, zRoot])
-            rotate([0, beta,0])
-            rotate([alpha, 0,0])
-            branch(lastLen, branchLen);
+	if (branches){
+		color("brown"){
+        translate([xRoot, yRoot, zRoot])
+        rotate([0, beta,0])
+        rotate([alpha, 0,0])
+        branch(lastLen, branchLen);
         }
     }
-    
 }
 
 
