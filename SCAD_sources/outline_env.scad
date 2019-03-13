@@ -6,36 +6,61 @@ k = 4;
 maxLen = 10;
 lowR = 0.8;
 upR = 1.2;
-killRatio = 1.5; // number of branches killed per surviving branch - needs to be < 3 to probabilistically allow for full tree
+killRatio = 2; // number of branches killed per surviving branch - needs to be < 3 to probabilistically allow for full tree
 
-module trees(branches = true, leaves = true){
-    // west
-    tree(0, 50, 50, branches, leaves, scale=1);
-
-}
-
-module tree(xpos, ypos, zpos, leaves=true, branches=true, scale=1){
-    // "unique" within 
-    randFactors = rands(lowR, upR, 500, (xpos+ypos)%zpos);
-    randProbs = rands(0, killRatio, 500, (xpos+zpos)/ypos);
-    translate([xpos, ypos, zpos])
-    scale([scale,scale,scale])
-    twisty(3, leaves = leaves, branches = branches, randFactors=randFactors, randProbs=randProbs);
-    }
-
-
-//color("green") cube([200,200,1]);
 
 main();
 
 module main(){
-    trees();
+    eastCenterTrees(n=30, scale=0.3);
+    eastNorthTrees(n=30, scale=0.3);
+    westTrees(n=100, scale=0.3);
     river();
     paved();
     riverBank();
         westSlope(); 
         eastSlope();
     }
+    
+    
+module westTrees(n, branches = true, leaves = true, scale=1){
+    xs = rands(0,200,n, 123048);
+    ys = rands(-40,35,n, 1328074);
+    // calculate/approximate z
+    for (i=[0:n]){
+        tree(xs[i], ys[i], 12+(-12*ys[i])/40, branches, leaves, scale);
+        }
+    }
+    
+module eastCenterTrees(n, branches=true, leaves=true, scale=1){
+    xs = rands(80,120,n, 12435);
+    ys = rands(80,135,n, 167);
+    // calculate/approximate z
+    for (i=[0:n]){
+        tree(xs[i], ys[i], -39+(5.9*ys[i])/11, branches, leaves, scale);
+        }
+}
+
+module eastNorthTrees(n, branches=true, leaves=true, scale=1){
+    xs = rands(0,80,n, 4589);
+    ys = rands(90,135,n, 677);
+    // calculate/approximate z
+    for (i=[0:n]){
+        tree(xs[i], ys[i], (xs[i]*0.1)-50+(5.9*ys[i])/11, branches, leaves, scale);
+        }
+}
+
+
+
+
+module tree(xpos, ypos, zpos, leaves=true, branches=true, scale){
+    // "unique" within 
+    randFactors = rands(lowR, upR, 500, (xpos+ypos)%zpos);
+    randProbs = rands(0, killRatio, 500, (xpos+zpos)/ypos);
+    translate([xpos, ypos, zpos])
+    scale([scale,scale,scale])
+    twisty(k, leaves = leaves, branches = branches, randFactors=randFactors, randProbs=randProbs);
+    }    
     
 module river(){
     color ("blue") linear_extrude(height = 1, center = false, convexity = 10)
