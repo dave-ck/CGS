@@ -3,11 +3,12 @@ sizeFactor = 1.1;
 gamma = 30;
 chungus = 8;
 k = 4;
-smallN=50;
+smallN=1;
 maxLen = 10;
 lowR = 0.8;
 upR = 1.2;
 killRatio = 2; // number of branches killed per surviving branch - needs to be < 3 to probabilistically allow for full tree
+
 main();
 
 module trees(branches = true, leaves=true){

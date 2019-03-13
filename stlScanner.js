@@ -97,20 +97,9 @@ function genDummy(size) {
 let models = JSON.parse(fs.readFileSync("./models.json", 'utf-8'));
 
 // INSERT CODE TO ADD TO MODELS HERE i.e.
-//models.branches50 = readSTL("./STL_Sources/branches50.stl");    // overwrites existing models.pointy
+models.bridge = readSTL("./STL_Sources/bridge.stl");    // overwrites existing models.pointy
 
-let newModels = {
-    branches50: models.branches50,
-    leaves50: models.leaves50,
-    slopes: readSTL("./STL_Sources/slopes.stl"),
-    riverBank: readSTL("./STL_Sources/riverBank.stl"),
-    river: readSTL("./STL_Sources/river.stl"),
-    footPath: readSTL("./STL_Sources/footPath.stl"),
-    flower: readSTL("./STL_Sources/flower.stl"),
-    pointy: readSTL("./STL_Sources/pointy.stl"),
-};
-
-fs.writeFile("./models.json", JSON.stringify(newModels), null, 2);
+fs.writeFile("./models.json", JSON.stringify(models), null, 2);
 
 
 console.log("\nDone loading models. models.json has been updated.");

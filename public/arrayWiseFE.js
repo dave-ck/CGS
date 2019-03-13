@@ -67,8 +67,8 @@ function main() {
 
     var viewProjMatrix = new Matrix4();
     // Set the eye point, look-at point, and up vector.
-    viewProjMatrix.setPerspective(30, canvas.width / canvas.height, 1, 1000);
-    viewProjMatrix.lookAt(400, 200, 70, 0, 50, 20, 0, 0, 1);
+    viewProjMatrix.setPerspective(45, canvas.width / canvas.height, 1, 1000);
+    viewProjMatrix.lookAt(140, 55, 3, 0, 50, 20, 0, 0, 1);
 
     // Pass the view projection matrix to u_ViewProjMatrix
     gl.uniformMatrix4fv(u_ViewProjMatrix, false, viewProjMatrix.elements);
@@ -90,6 +90,7 @@ function main() {
         draw(gl, "slopes", indices);
         draw(gl, "riverBank", indices);
         draw(gl, "footPath", indices);
+        draw(gl, "bridge", indices);
     } else {
         console.log("Models not yet loaded");
         gl.drawArrays(gl.TRIANGLES, indices.green.start, indices.green.end);
@@ -254,6 +255,11 @@ function initVertexBuffersFromModels(gl) {
                     b = 34 / 255;
                     break;
                 case "footPath":
+                    r = 128 / 255;
+                    g = 128 / 255;
+                    b = 128 / 255;
+                    break;
+                case "bridge":
                     r = 128 / 255;
                     g = 128 / 255;
                     b = 128 / 255;
