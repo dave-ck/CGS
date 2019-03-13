@@ -8,13 +8,17 @@ lowR = 0.8;
 upR = 1.2;
 killRatio = 2; // number of branches killed per surviving branch - needs to be < 3 to probabilistically allow for full tree
 
-
 main();
 
-module main(){
+
+module trees(branches = true, leaves=true){
     eastCenterTrees(n=30, scale=0.3);
     eastNorthTrees(n=30, scale=0.3);
     westTrees(n=100, scale=0.3);
+    }
+    
+module main(){
+    trees();
     river();
     paved();
     riverBank();
@@ -130,10 +134,10 @@ module twisty(levels, lastLen=maxLen, i=0, xRoot = 0, yRoot = 0, zRoot=0, alpha=
 		}
         }
     if (leaves && childless && i>1){  // draw a leaf at the end of each branch drawn below
-        leaf(i+1, xRoot+xShift, yRoot-yShift, zRoot+zShift, alpha+alphaShift,  beta + betaShift);
+        //leaf(i+1, xRoot+xShift, yRoot-yShift, zRoot+zShift, alpha+alphaShift,  beta + betaShift);
         leaf(i+1, xRoot+xShift, yRoot-yShift, zRoot+zShift, alpha+alphaShift,  beta - betaShift);
         leaf(i+1, xRoot+xShift, yRoot-yShift, zRoot+zShift, alpha-alphaShift,  beta + betaShift);
-        leaf(i+1, xRoot+xShift, yRoot-yShift, zRoot+zShift, alpha-alphaShift,  beta - betaShift);
+        //leaf(i+1, xRoot+xShift, yRoot-yShift, zRoot+zShift, alpha-alphaShift,  beta - betaShift);
         }
 	if (branches){
 		color("brown"){
@@ -148,14 +152,15 @@ module twisty(levels, lastLen=maxLen, i=0, xRoot = 0, yRoot = 0, zRoot=0, alpha=
 
 
 
+
 module leaf(levels, x=0, y=0, z=0, alphaX=0, beta=0){
     color("green"){
         size = maxLen/pow(sizeFactor, levels)/3;
         translate([x,y,z]){
-        rotate([0,-45 -alphaX,beta])
-        cube([size,size/20,size]);
-        rotate([0,-45 + alphaX,beta])
-        cube([size,size/20,size]);
+        rotate([alphaX,-45,beta])
+        scale([size, size/20, size])
+        cylinder(r1=0, r2=1, h=2);
+
         }
     }
 }
