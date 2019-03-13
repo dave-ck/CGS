@@ -94,17 +94,11 @@ function genDummy(size){
     return {vertices:vertices, indices: indices};
 }
 
-let models = {
-    pointy: readSTL("./STL_Sources/pointy.stl"),
-    flower: readSTL("./STL_Sources/flower.stl"),
-    river: readSTL("./STL_Sources/river.stl"),
-    westBank: readSTL("./STL_Sources/westBank.stl"),
-    westSlope: readSTL("./STL_Sources/westSlope.stl"),
-    path: readSTL("./STL_Sources/footpath.stl"),
-    branches: readSTL("./STL_Sources/treeBranches_4_1.stl"),
-    leaves: readSTL("./STL_Sources/treeLeaves_4_1.stl"),
-    //leaves: readSTL("./STL_Sources/.stl"),
-};
+let models = JSON.parse(fs.readFileSync("./models.json", 'utf-8'));
+
+// INSERT CODE TO ADD TO MODELS HERE i.e.
+models.pointy = readSTL("./STL_Sources/pointy.stl");    // overwrites existing models.pointy
+
 
 fs.writeFile("./models.json", JSON.stringify(models), null, 2);
 

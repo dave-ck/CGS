@@ -67,8 +67,8 @@ function main() {
 
     var viewProjMatrix = new Matrix4();
     // Set the eye point, look-at point, and up vector.
-    viewProjMatrix.setPerspective(45, canvas.width / canvas.height, 1, 1000);
-    viewProjMatrix.lookAt(100, 100, 20, 0, 0, 0, 0, 0, 1);
+    viewProjMatrix.setPerspective(30, canvas.width / canvas.height, 1, 1000);
+    viewProjMatrix.lookAt(-100, -100, 30, 0, 50, 20, 0, 0, 1);
 
     // Pass the view projection matrix to u_ViewProjMatrix
     gl.uniformMatrix4fv(u_ViewProjMatrix, false, viewProjMatrix.elements);
@@ -79,63 +79,25 @@ function main() {
         indices = initVertexBuffersFromModels(gl, 1, 0, 1);
     }
     // Clear color and depth buffer
-    // Draw the triangles
-    //gl.drawArrays(gl.TRIANGLES, 0, indices.default.end);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
     if (models) {
-        let brutePointy = [
-            -1.5, 2.59808, 0, 1, 1, 0,      // pointy1
-            0, 0, 10, 1, 1, 0,
-            3, 0, 0, 1, 1, 0,
-
-            -1.5, -2.59808, 0, 1, 1, 0,      // pointy2
-            0, 0, 10, 1, 1, 0,
-            - 1.5, 2.59808, 0, 1, 1, 0,
-
-            3, 0, 0, 1, 1, 0,               // pointy3
-            0, 0, 10, 1, 1, 0,
-            -1.5, -2.59808, 0, 1, 1, 0,
-
-            -1.5, -2.59808, 0, 1, 1, 0, // pointy4
-            -1.5, 2.59808, 0, 1, 1, 0,
-            3, 0, 0, 1, 1, 0,
-
-        ];
-        let modelPointy = color(models.pointy.vertices, 1,1,0);
-
-        for(let i = 0; i < brutePointy.length; i++){
-            if (brutePointy[i]!==modelPointy[i]){
-                console.log(brutePointy[i]);
-                console.log(modelPointy[i]);
-                console.log(i);
-            }
-        }
-
-        // Clear color and depth buffer
         document.getElementById("space").hidden = true;
-
-
-
-        gl.enable(gl.POLYGON_OFFSET_FILL);
-        // Draw the triangles
-        gl.drawArrays(gl.TRIANGLES, indices.green.start, indices.green.len);
-        gl.polygonOffset(1.0, 1.0);          // Set the polygon offset
-        gl.drawArrays(gl.TRIANGLES, indices.yellow.start, indices.yellow.len);
-        console.log("Drawing from " + indices.pointy.start + " for " + indices.pointy.len);
-        console.log(models.pointy);
-        draw(gl, "pointy", indices);
-        draw(gl, "threeSquares", indices);
+        gl.drawArrays(gl.LINES, indices.axes.start, indices.axes.len);
         draw(gl, "river", indices);
+        draw(gl, "branches", indices);
+        draw(gl, "leaves", indices);
+        draw(gl, "westSlope", indices);
+        draw(gl, "westBank", indices);
+        draw(gl, "path", indices);
     } else {
         console.log("Models not yet loaded");
-        console.log("Drawing from " + indices.green.start + " for " + indices.green.len);
         gl.drawArrays(gl.TRIANGLES, indices.green.start, indices.green.end);
         gl.drawArrays(gl.TRIANGLES, indices.pointy.start, indices.pointy.len);
     }
 }
 
-function draw(gl, modelKey, indices, r, g, b){
+function draw(gl, modelKey, indices) {
     gl.drawArrays(gl.TRIANGLES, indices[modelKey].start, indices[modelKey].len);
 }
 
@@ -162,7 +124,7 @@ function initVertexBuffers(gl) {
 
         -1.5, -2.59808, 0, 1, 1, 0,      // pointy2
         0, 0, 10, 1, 1, 0,
-        - 1.5, 2.59808, 0, 1, 1, 0,
+        -1.5, 2.59808, 0, 1, 1, 0,
 
         3, 0, 0, 1, 1, 0,               // pointy3
         0, 0, 10, 1, 1, 0,
@@ -214,56 +176,91 @@ function initVertexBuffers(gl) {
  * v1x, v1y, v1z, r,g,b
  * ...
  * */
-function color(vertices, r, g, b) {
-    let coloredVertices = [];
-    n = vertices.length;
-    for (let i = 0; i < (n / 3); i++) {
-        coloredVertices.push(vertices[i * 3]);
-        coloredVertices.push(vertices[i * 3 + 1]);
-        coloredVertices.push(vertices[i * 3 + 2]);
-        coloredVertices.push(r);
-        coloredVertices.push(g);
-        coloredVertices.push(b);
-    }
-    return coloredVertices;
+function color(vertices, r = 0, g = 0, b = 0) {
+    if (r || g || b) {
+        let coloredVertices = [];
+        n = vertices.length;
+        for (let i = 0; i < (n / 3); i++) {
+            coloredVertices.push(vertices[i * 3]);
+            coloredVertices.push(vertices[i * 3 + 1]);
+            coloredVertices.push(vertices[i * 3 + 2]);
+            coloredVertices.push(r);
+            coloredVertices.push(g);
+            coloredVertices.push(b);
+        }
+        return coloredVertices;
+    } else return randColor(vertices);
 }
 
-function randColor(vertices){
+function randColor(vertices) {
     let coloredVertices = [];
     let n = vertices.length;
-    let state = 0;
     for (let i = 0; i < (n / 3); i++) {
         coloredVertices.push(vertices[i * 3]);
         coloredVertices.push(vertices[i * 3 + 1]);
         coloredVertices.push(vertices[i * 3 + 2]);
         // ensure at least (probabilistically, exactly) one of R, G, B is set to 1
-        coloredVertices.push(Math.random()*0.4 | (i+1)%2);
-        coloredVertices.push(Math.random()*0.4 | (i+1)%2);
-        coloredVertices.push(Math.random()*0.4 | (i)%2);
+        coloredVertices.push(Math.random() * 0.4 | (i + 1) % 2);
+        coloredVertices.push(Math.random() * 0.4 | (i + 1) % 2);
+        coloredVertices.push(Math.random() * 0.4 | (i) % 2);
     }
     return coloredVertices;
 }
 
 
-function initVertexBuffersFromModels(gl, r, g, b) {
+function initVertexBuffersFromModels(gl) {
     let concatenated = [
-        // Vertex coordinates and color
-        0.0, 2.5, -5.0, 0.4, 1.0, 0.4, // The green triangle
-        -2.5, -2.5, -5.0, 0.4, 1.0, 0.4,
-        2.5, -2.5, -5.0, 1.0, 0.4, 0.4,
-
-        0.0, 3.0, -5.0, 1.0, 0.4, 0.4, // The yellow triangle
-        -3.0, -3.0, -5.0, 1.0, 1.0, 0.4,
-        3.0, -3.0, -5.0, 1.0, 1.0, 0.4,
-
-
+        // Vertex coordinates and color (for axes)
+        -200.0, 0.0, 0.0, 1.0, 0, 0, //v1
+        200.0, 0.0, 0.0, 1.0, 0, 0, //v2
+        0.0, 200.0, 0.0, 0, 1, 0, //v3
+        0.0, -200.0, 0.0, 0, 1, 0, //v4
+        0.0, 0.0, -200.0, 0, 0, 1, //v5
+        0.0, 0.0, 200.0, 0, 0, 1,  //v6
     ];
-    let indices = {green: {start: 0, len: 3}, yellow: {start: 3, len: 3}};
+    let indices = {axes: {start: 0, len: 6}};
     let i = 6;
+    // initialized non-empty to facilitate testing and debugging
 
     for (let key in models) {
         if (models.hasOwnProperty(key)) {
-            let colored = randColor(models[key].vertices);  // red by default, can use switch case to color differently
+            let r = 0;
+            let g = 0;
+            let b = 0;
+            switch (key) {
+                case "branches":
+                    r = 181 / 255;
+                    g = 123 / 255;
+                    b = 48 / 255;
+                    break;
+                case "river":
+                    b = 255;    // pick a better/more detailed color later
+                    break;
+                case "westBank":
+                    r = 143 / 255;
+                    g = 181 / 255;
+                    b = 48 / 255;
+                    break;
+                case "leaves":
+                    r = 10 / 255;
+                    g = 240 / 255;
+                    b = 75 / 255;
+                    break;
+                case "westSlope":
+                    r = 89 / 255;
+                    g = 63 / 255;
+                    b = 15 / 255;
+                    break;
+                case "path":
+                    r = 1 / 255;
+                    g = 1 / 255;
+                    b = 1 / 255;
+                    break;
+                default:
+                    console.log("Proceeding with random coloration.");
+            }
+
+            let colored = color(models[key].vertices, r, g, b);  // red by default, can use switch case to color differently
             concatenated = concatenated.concat(colored);
             indices[key] = {};
             indices[key].start = i;
@@ -276,7 +273,7 @@ function initVertexBuffersFromModels(gl, r, g, b) {
     console.log("VerticesColors:");
     console.log(verticesColors);
     console.log("" + indices.river.start + "," + indices.river.len);
-    console.log(verticesColors.slice(indices.river.start*6,  (indices.river.start + indices.river.len)*6));
+    console.log(verticesColors.slice(indices.river.start * 6, (indices.river.start + indices.river.len) * 6));
     // Create a buffer object
     var vertexColorbuffer = gl.createBuffer();
     if (!vertexColorbuffer) {
@@ -305,6 +302,7 @@ function initVertexBuffersFromModels(gl, r, g, b) {
     }
     gl.vertexAttribPointer(a_Color, 3, gl.FLOAT, false, FSIZE * 6, FSIZE * 3);
     gl.enableVertexAttribArray(a_Color);
+
 
     return indices;
 }
