@@ -3,54 +3,97 @@ sizeFactor = 1.1;
 gamma = 30;
 chungus = 8;
 k = 4;
-smallN=1;
-maxLen = 10;
+smallN=5;
+maxLen = 11;
 lowR = 0.8;
 upR = 1.2;
 killRatio = 2; // number of branches killed per surviving branch - needs to be < 3 to probabilistically allow for full tree
 
 main();
 
-module trees(branches = true, leaves=true){
-    eastCenterTrees(n=smallN, , branches=branches, leaves=leaves, scale=0.3);
-    eastNorthTrees(n=smallN, , branches=branches, leaves=leaves, scale=0.3);
-    westTrees(n=(3*smallN), , branches=branches, leaves=leaves, scale=0.3);
-    }
+
     
 module main(){
+    posdbridge();
     trees();
-    river();
+    //river();
     paved();
     riverBank();
     westSlope(); 
     eastSlope();
     }
     
+ module posdbridge(){
+    color("gray")
+    translate([136, 18, 0])
+    rotate([0,0,15])
+    bridge();
+}
+
+module bridge(){
+    //difference(){
+    union(){
+        cube([4, 80, 6]);
+        // mark river start
+        //translate([0,16,0]) cube([1,1,10]);
+        // mark river end
+        //translate([0,52,0]) cube([1,1,10]);
+        pillar(15);
+        pillar(27);
+        pillar(39);
+        pillar(51);
+        
+        }
+    // arches
+    translate([-3,22, 0])    rotate([0,90,0])    cylinder(r=5, h = 10, $fn=50);
+    translate([-3,34, 0])    rotate([0,90,0])    cylinder(r=5, h = 10, $fn=50);
+    translate([-3,46, 0])    rotate([0,90,0])    cylinder(r=5, h = 10, $fn=50);
+    //}
+}
+
+module pillar(x){
     
+    translate([0,x,0]) 
+        scale([1.6,0.707,1])
+        rotate([0,0,45])
+        cube([2,2,6]);
+    translate([4,x,0]) 
+        scale([1.6,0.707,1])
+        rotate([0,0,45])
+        cube([2,2,6]);
+    }
+    
+module trees(branches = true, leaves=true){
+    eastCenterTrees(n=smallN*2, , branches=branches, leaves=leaves, scale=0.3);
+    eastNorthTrees(n=smallN*3, , branches=branches, leaves=leaves, scale=0.3);
+    westTrees(n=(5*smallN), , branches=branches, leaves=leaves, scale=0.3);
+    }
+    translate([0,0,10])
+    cube([100,1,1]);
 module westTrees(n, branches = true, leaves = true, scale=1){
-    xs = rands(0,200,n, 123048);
-    ys = rands(-40,35,n, 1328074);
+    xs = rands(0,160,n, 123048);
+    ys = rands(10,30,n, 78);
     // calculate/approximate z
     for (i=[0:n]){
-        tree(xs[i], ys[i], 12+(-12*ys[i])/40, branches, leaves, scale);
+        tree(xs[i], ys[i], 9+(-1*ys[i])/3, branches, leaves, scale);
         }
     }
     
 module eastCenterTrees(n, branches=true, leaves=true, scale=1){
     xs = rands(80,120,n, 12435);
-    ys = rands(80,135,n, 167);
+    ys = rands(70,90,n, 167);
     // calculate/approximate z
     for (i=[0:n]){
-        tree(xs[i], ys[i], -39+(5.9*ys[i])/11, branches, leaves, scale);
+        tree(xs[i], ys[i], -37+(5.9*ys[i])/11, branches, leaves, scale);
         }
 }
 
 module eastNorthTrees(n, branches=true, leaves=true, scale=1){
-    xs = rands(0,80,n, 4589);
-    ys = rands(90,135,n, 677);
+    xs = rands(0,80,n, 489);
+    ys = rands(85,100,n, 77);
     // calculate/approximate z
     for (i=[0:n]){
-        tree(xs[i], ys[i], (xs[i]*0.1)-50+(5.9*ys[i])/11, branches, leaves, scale);
+        tree(xs[i], ys[i], (0.1*xs[i])-47+(5.9*ys[i])/11, branches, leaves, scale);
         }
 }
 
@@ -86,7 +129,7 @@ module riverBank() {
 
 module eastSlope() {
     color ("green") 
-    linear_extrude(scale=[1.2,1.8], height = 30, center = false, convexity = 100){
+    linear_extrude(scale=[1.08,1.24], height = 10, center = false, convexity = 100){
     offset(r=3) 
     import (file = "slopeEastBot.dxf");}
  
@@ -96,7 +139,7 @@ module westSlope() {
    rotate([0,0,-150])
     translate([-250, -80, 0])
     color ("green") 
-    linear_extrude(scale=[1.5,1.8], height = 30, center = false, convexity = 100){
+    linear_extrude(scale=[1.15,1.24], height = 10, center = false, convexity = 100){
     translate([250,80,0])
     rotate([0,0,150])
     offset(r=3) 
@@ -147,6 +190,14 @@ module twisty(levels, lastLen=maxLen, i=0, xRoot = 0, yRoot = 0, zRoot=0, alpha=
         branch(lastLen, branchLen);
         }
     }
+    if (i==0){
+        color("brown"){
+        translate([xRoot, yRoot, zRoot-branchLen])
+        rotate([0, beta,0])
+        rotate([alpha, 0,0])
+        branch(lastLen, branchLen);
+        }
+        }
 }
 
 
