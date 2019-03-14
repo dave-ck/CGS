@@ -97,7 +97,8 @@ function genDummy(size) {
 let models = JSON.parse(fs.readFileSync("./models.json", 'utf-8'));
 
 // INSERT CODE TO ADD TO MODELS HERE i.e.
-models.bridge = readSTL("./STL_Sources/bridge.stl");    // overwrites existing models.pointy
+models.boat = readSTL("./STL_Sources/boat.stl");    // overwrites existing models.x
+
 
 fs.writeFile("./models.json", JSON.stringify(models), null, 2);
 

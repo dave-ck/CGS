@@ -3,10 +3,11 @@
 var VSHADER_SOURCE =
     'attribute vec4 a_Position;\n' +
     'attribute vec4 a_Color;\n' +
-    'uniform mat4 u_ViewProjMatrix;\n' +
+    'uniform mat4 u_ModelMatrix;\n' +
+    'uniform mat4 u_mvpMatrix;\n' +
     'varying vec4 v_Color;\n' +
     'void main() {\n' +
-    '  gl_Position = u_ViewProjMatrix * a_Position;\n' +
+    '  gl_Position = u_mvpMatrix * a_Position;\n' +
     '  v_Color = a_Color;\n' +
     '}\n';
 
@@ -24,21 +25,72 @@ let models = undefined;
 // load STL models from serverside
 $.get("./models", function (model_data) {
     models = model_data;
-    console.log(models.pointy);
+    main();
+    document.getElementById("info").hidden = true;
+
 });
+
+let ANGLE_DELTA = 0.03; //controls rate at which viewpoint turns
+let indices = null;
+let eyeX = 0;
+let eyeY = 50;
+let eyeZ = 10;
+let lookAlongX = 1;
+let lookAlongY = 0;
+//let lookAlongZ = 0;   //unused
+let look_Angle = 0;     // in radians (JS Math package uses)
+
+function keydown(ev, gl, u_ViewProjMatrix, u_ModelMatrix) {
+    console.log(ev.key);
+    lookAlongX = Math.cos(look_Angle);
+    lookAlongY = Math.sin(look_Angle);
+    switch (ev.key) {
+        case " ":
+            eyeZ++;
+            break;
+        case "x":
+            eyeZ--;
+            break;
+        case "q":   // look left
+            look_Angle += ANGLE_DELTA;
+            break;
+        case "e":   // look right
+            look_Angle -= ANGLE_DELTA;
+            break;
+        case "w":   // move forward
+            eyeX += Math.cos(look_Angle);
+            eyeY += Math.sin(look_Angle);
+            break;
+        case "a":   // move left
+            eyeX += Math.cos(look_Angle+Math.PI/2);
+            eyeY += Math.sin(look_Angle+Math.PI/2);
+            break;
+        case "d":   // move right
+            eyeX += Math.cos(look_Angle-Math.PI/2);
+            eyeY += Math.sin(look_Angle-Math.PI/2);
+            break;
+        case "s":   // move back
+            eyeX -= Math.cos(look_Angle);
+            eyeY -= Math.sin(look_Angle);
+            break;
+        default:
+            break;
+    }
+
+    // keep user inside the box
+    eyeZ = Math.min(eyeZ, 15);
+    eyeZ = Math.max(eyeZ, 1);
+    eyeX = Math.max(eyeX, 1);
+    eyeX = Math.min(eyeX, 200);
+    eyeY = Math.max(eyeY, 1);
+    eyeY = Math.min(eyeY, 100);
+    // Draw the scene
+    draw(gl, u_ViewProjMatrix, u_ModelMatrix);
+}
 
 
 function main() {
-    document.onkeydown = function (ev) {
-        console.log(ev.key);
-        switch (ev.key) {
-            case " ":
-                main();
-                break;
-            default:
-                break;
-        }
-    };
+
     // Retrieve <canvas> element
     var canvas = document.getElementById('webgl');
 
@@ -59,116 +111,48 @@ function main() {
     gl.enable(gl.DEPTH_TEST);
 
     // Get the storage locations of u_ViewProjMatrix
-    var u_ViewProjMatrix = gl.getUniformLocation(gl.program, 'u_ViewProjMatrix');
-    if (!u_ViewProjMatrix) {
-        console.log('Failed to get the storage locations of u_ViewProjMatrix');
-        return;
-    }
-
-    var viewProjMatrix = new Matrix4();
-    // Set the eye point, look-at point, and up vector.
-    viewProjMatrix.setPerspective(45, canvas.width / canvas.height, 1, 1000);
-    viewProjMatrix.lookAt(140, 55, 3, 0, 50, 20, 0, 0, 1);
+    var u_mvpMatrix = gl.getUniformLocation(gl.program, 'u_mvpMatrix');
 
     // Pass the view projection matrix to u_ViewProjMatrix
-    gl.uniformMatrix4fv(u_ViewProjMatrix, false, viewProjMatrix.elements);
 
-    let indices = initVertexBuffers(gl);
-    // Set the vertex coordinates and color (the blue triangle is in the front)
-    if (models) {
-        indices = initVertexBuffersFromModels(gl, 1, 0, 1);
+    indices = initVertexBuffersFromModels(gl, 1, 0, 1);
+
+    document.onkeydown = function (ev) {
+        keydown(ev, gl, u_mvpMatrix); //, u_ModelMatrix, u_NormalMatrix, u_isLighting);
     }
-    // Clear color and depth buffer
+}
+
+function draw(gl, u_mvpMatrix) {
+    let viewMatrix = new Matrix4();
+    let projMatrix = new Matrix4();
+    let mvpMatrix = new Matrix4();
+    let modelMatrix = new Matrix4();
+    projMatrix.setPerspective(45, 800 / 600, 1, 1000);
+    viewMatrix.setLookAt(eyeX, eyeY, eyeZ, eyeX + lookAlongX, eyeY + lookAlongY, eyeZ, 0, 0, 1);
+    //gl.uniformMatrix4fv(u_ViewProjMatrix, false, viewProjMatrix.elements);
+    modelMatrix.setTranslate(0,0,0);
+    mvpMatrix.set(projMatrix).multiply(viewMatrix).multiply(modelMatrix);
+    gl.uniformMatrix4fv(u_mvpMatrix, false, mvpMatrix.elements);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    gl.drawArrays(gl.LINES, indices.axes.start, indices.axes.len);
+    drawModel(gl, "river", indices);
+    drawModel(gl, "branches1", indices);
+    drawModel(gl, "leaves1", indices);
+    drawModel(gl, "slopes", indices);
+    drawModel(gl, "riverBank", indices);
+    drawModel(gl, "footPath", indices);
+    drawModel(gl, "bridge", indices);
 
-    if (models) {
-        document.getElementById("space").hidden = true;
-        gl.drawArrays(gl.LINES, indices.axes.start, indices.axes.len);
-        draw(gl, "river", indices);
-        draw(gl, "branches50", indices);
-        draw(gl, "leaves50", indices);
-        draw(gl, "slopes", indices);
-        draw(gl, "riverBank", indices);
-        draw(gl, "footPath", indices);
-        draw(gl, "bridge", indices);
-    } else {
-        console.log("Models not yet loaded");
-        gl.drawArrays(gl.TRIANGLES, indices.green.start, indices.green.end);
-        gl.drawArrays(gl.TRIANGLES, indices.pointy.start, indices.pointy.len);
-    }
+    // movement
+
+    modelMatrix.setTranslate(0,0,20);
+    mvpMatrix.set(projMatrix).multiply(viewMatrix).multiply(modelMatrix);
+    gl.uniformMatrix4fv(u_mvpMatrix, false, mvpMatrix.elements);
+    drawModel(gl, "boat", indices);
 }
 
-function draw(gl, modelKey, indices) {
+function drawModel(gl, modelKey, indices) {
     gl.drawArrays(gl.TRIANGLES, indices[modelKey].start, indices[modelKey].len);
-}
-
-
-function initVertexBuffers(gl) {
-    // keep so something is rendered when models don't load - can make generic text or smth.
-
-    let i = 0;
-    let indices = {};
-
-    var verticesColors = new Float32Array([
-        // Vertex coordinates and color
-        0.0, 2.5, -5.0, 0.4, 1.0, 0.4, // The green triangle
-        -2.5, -2.5, -5.0, 0.4, 1.0, 0.4,
-        2.5, -2.5, -5.0, 1.0, 0.4, 0.4,
-
-        0.0, 3.0, -5.0, 1.0, 0.4, 0.4, // The yellow triangle
-        -3.0, -3.0, -5.0, 1.0, 1.0, 0.4,
-        3.0, -3.0, -5.0, 1.0, 1.0, 0.4,
-
-        -1.5, 2.59808, 0, 1, 1, 0,      // pointy1
-        0, 0, 10, 1, 1, 0,
-        3, 0, 0, 1, 1, 0,
-
-        -1.5, -2.59808, 0, 1, 1, 0,      // pointy2
-        0, 0, 10, 1, 1, 0,
-        -1.5, 2.59808, 0, 1, 1, 0,
-
-        3, 0, 0, 1, 1, 0,               // pointy3
-        0, 0, 10, 1, 1, 0,
-        -1.5, -2.59808, 0, 1, 1, 0,
-
-        -1.5, -2.59808, 0, 1, 1, 0, // pointy4
-        -1.5, 2.59808, 0, 1, 1, 0,
-        3, 0, 0, 1, 1, 0,
-
-    ]);
-
-    indices = {green: {start: 0, len: 3}, yellow: {start: 3, len: 3}, pointy: {start: 6, len: 12}};
-
-    // Create a buffer object
-    var vertexColorbuffer = gl.createBuffer();
-    if (!vertexColorbuffer) {
-        console.log('Failed to create the buffer object');
-        return -1;
-    }
-
-    // Write the vertex coordinates and color to the buffer object
-    gl.bindBuffer(gl.ARRAY_BUFFER, vertexColorbuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, verticesColors, gl.STATIC_DRAW);
-
-    var FSIZE = verticesColors.BYTES_PER_ELEMENT;
-    // Assign the buffer object to a_Position and enable the assignment
-    var a_Position = gl.getAttribLocation(gl.program, 'a_Position');
-    if (a_Position < 0) {
-        console.log('Failed to get the storage location of a_Position');
-        return -1;
-    }
-    gl.vertexAttribPointer(a_Position, 3, gl.FLOAT, false, FSIZE * 6, 0);
-    gl.enableVertexAttribArray(a_Position);
-    // Assign the buffer object to a_Color and enable the assignment
-    var a_Color = gl.getAttribLocation(gl.program, 'a_Color');
-    if (a_Color < 0) {
-        console.log('Failed to get the storage location of a_Color');
-        return -1;
-    }
-    gl.vertexAttribPointer(a_Color, 3, gl.FLOAT, false, FSIZE * 6, FSIZE * 3);
-    gl.enableVertexAttribArray(a_Color);
-
-    return indices;
 }
 
 
@@ -229,7 +213,7 @@ function initVertexBuffersFromModels(gl) {
             let g = 0;
             let b = 0;
             switch (key) {
-                case "branches50":
+                case "branches1":
                     r = 158 / 255;
                     g = 115 / 255;
                     b = 17 / 255;
@@ -244,7 +228,7 @@ function initVertexBuffersFromModels(gl) {
                     g = 181 / 255;
                     b = 48 / 255;
                     break;
-                case "leaves50":
+                case "leaves1":
                     r = 0 / 255;
                     g = 128 / 255;
                     b = 0 / 255;
@@ -263,6 +247,11 @@ function initVertexBuffersFromModels(gl) {
                     r = 128 / 255;
                     g = 128 / 255;
                     b = 128 / 255;
+                    break;
+                case "boat":
+                    r = 196 / 255;
+                    g = 196 / 255;
+                    b = 196 / 255;
                     break;
                 default:
                     console.log("Proceeding with random coloration.");

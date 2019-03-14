@@ -7,20 +7,30 @@ smallN=5;
 maxLen = 11;
 lowR = 0.8;
 upR = 1.2;
-killRatio = 2; // number of branches killed per surviving branch - needs to be < 3 to probabilistically allow for full tree
+killRatio = 1.7; // number of branches killed per surviving branch - needs to be < 3 to probabilistically allow for full tree
 
 main();
+//boat();
+//trees(branches=false, leaves=true, scale=0.3, seed=2);
+//trees(branches=true, leaves=false, scale=0.3, seed=4);
+//trees(branches=true, leaves=false, scale=0.3, seed=3);
+//trees(branches=true, leaves=false, scale=0.3, seed=2);
+//trees(branches=true, leaves=false, scale=0.3, seed=1);
+//main();
+
+
 
 
     
 module main(){
     posdbridge();
-    trees();
-    //river();
+    //trees();
+    river();
     paved();
     riverBank();
     westSlope(); 
     eastSlope();
+    boat();
     }
     
  module posdbridge(){
@@ -63,37 +73,37 @@ module pillar(x){
         cube([2,2,6]);
     }
     
-module trees(branches = true, leaves=true){
-    eastCenterTrees(n=smallN*2, , branches=branches, leaves=leaves, scale=0.3);
-    eastNorthTrees(n=smallN*3, , branches=branches, leaves=leaves, scale=0.3);
-    westTrees(n=(5*smallN), , branches=branches, leaves=leaves, scale=0.3);
+module trees(branches = true, leaves=true, seed=0){
+    eastCenterTrees(n=smallN*2, , branches=branches, leaves=leaves, scale=0.3, seed=seed);
+    eastNorthTrees(n=smallN*3, , branches=branches, leaves=leaves, scale=0.3, seed=seed);
+    westTrees(n=(5*smallN), , branches=branches, leaves=leaves, scale=0.3, seed=seed);
     }
-    translate([0,0,10])
-    cube([100,1,1]);
-module westTrees(n, branches = true, leaves = true, scale=1){
-    xs = rands(0,160,n, 123048);
-    ys = rands(10,30,n, 78);
+   
+    
+module westTrees(n, branches = true, leaves = true, scale=1, seed=0){
+    xs = rands(0,160,n, 58+seed);
+    ys = rands(10,30,n, 95+seed);
     // calculate/approximate z
     for (i=[0:n]){
-        tree(xs[i], ys[i], 9+(-1*ys[i])/3, branches, leaves, scale);
+        tree(xs[i], ys[i], 9+(-1*ys[i])/3, branches, leaves, scale, seed=0);
         }
     }
     
-module eastCenterTrees(n, branches=true, leaves=true, scale=1){
-    xs = rands(80,120,n, 12435);
-    ys = rands(70,90,n, 167);
+module eastCenterTrees(n, branches=true, leaves=true, scale=1, seed=0){
+    xs = rands(80,120,n, 327+seed);
+    ys = rands(70,90,n, 167+seed);
     // calculate/approximate z
     for (i=[0:n]){
-        tree(xs[i], ys[i], -37+(5.9*ys[i])/11, branches, leaves, scale);
+        tree(xs[i], ys[i], -37+(5.9*ys[i])/11, branches, leaves, scale, seed=0);
         }
 }
 
-module eastNorthTrees(n, branches=true, leaves=true, scale=1){
-    xs = rands(0,80,n, 489);
-    ys = rands(85,100,n, 77);
+module eastNorthTrees(n, branches=true, leaves=true, scale=1, seed=0){
+    xs = rands(0,80,n, 489+seed);
+    ys = rands(85,100,n, 77+seed);
     // calculate/approximate z
     for (i=[0:n]){
-        tree(xs[i], ys[i], (0.1*xs[i])-47+(5.9*ys[i])/11, branches, leaves, scale);
+        tree(xs[i], ys[i], (0.1*xs[i])-47+(5.9*ys[i])/11, branches, leaves, scale, seed=seed);
         }
 }
 
@@ -189,7 +199,7 @@ module twisty(levels, lastLen=maxLen, i=0, xRoot = 0, yRoot = 0, zRoot=0, alpha=
         rotate([alpha, 0,0])
         branch(lastLen, branchLen);
         }
-    }
+    
     if (i==0){
         color("brown"){
         translate([xRoot, yRoot, zRoot-branchLen])
@@ -198,6 +208,7 @@ module twisty(levels, lastLen=maxLen, i=0, xRoot = 0, yRoot = 0, zRoot=0, alpha=
         branch(lastLen, branchLen);
         }
         }
+    }
 }
 
 
@@ -220,4 +231,48 @@ module branch(lastx, nowx, fn=3){
     cylinder(h=nowx, r1=lastx/chungus, r2=nowx/(chungus), $fn=fn);
 }
 
+module boat(){
+    translate([100,50,0.9]) color("white")scale(0.3){
+    difference(){
+        translate([0,0,0.75])
+        scale([1,0.5,0.75])
+        rotate([0,90,0])
+        union(){    
+            translate([0,0,10])
+            cylinder(r1=1, r2=0, h=6, $fn=50);
+            translate([0,0,-6])
+            cylinder(r1=0, r2=1, h=6, $fn=50);
+            cylinder(r=1, h=10, $fn=50);
+            
+            }
+    translate([-15,-1,0.75])
+    cube([50,2,2]);
+    }
+    // fixtures for oars
+    translate([2, -0.75, 0.55])
+    rotate([0,0,30])
+    scale([2,2,1])
+    fixture();
+    translate([6, -0.75, 0.55])
+    rotate([0,0,30])
+    scale([2,2,1])
+    fixture();
+    translate([4, +0.75, 0.55])
+    rotate([0,0,-30])
+    scale([2,2,1])
+    fixture();
+    translate([8, +0.75, 0.55])
+    rotate([0,0,-30])
+    scale([2,2,1])
+    fixture();
+    }
+    }
+
+
+    
+module fixture(r=2/3, w=0.2){
+    difference(){
+    cylinder(r=r, h=0.2, $fn=3);
+    cylinder(r=r-w, h=0.2, $fn=3);
+    }}
 
