@@ -197,7 +197,7 @@ function draw(gl, u_mvpMatrix) {
     drawModel(gl, "oar", indices);
     modelMatrix = popMatrix();
     pushMatrix(modelMatrix);
-
+    // a comment
     // oar 3
     modelMatrix.translate(4,0,0);
     modelMatrix.rotate(-1 * oarZAngle, 0,0,1);
