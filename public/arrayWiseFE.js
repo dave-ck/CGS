@@ -184,18 +184,17 @@ function draw(gl, u_mvpMatrix) {
     // boat position is a function of time; loops (teleports back to start) every 30 seconds
     let boatX = 45 + 100 * t / 30000;
     boatX = 45 + (boatX % 100);
-    boatX = 75 + (boatX % 20);
     let oarZAngle = Math.sin(t / 300) * 60;
     let oarYAngle = -1 * Math.cos(t / 300) * 45 - 45;
-    let oarXAngle = Math.cos(t / 300) * 10 + 10;
+    let oarXAngle = Math.cos(t / 300) * 5 + 5;
     let leftOarZAngle = Math.sin(Math.PI + t / 300) * 60;
-    let leftOarYAngle = -1 * Math.cos(Math.PI + t / 300) * 45 - 45;
-    let leftOarXAngle = Math.cos(Math.PI + t / 300) * 10 - 10;
+    let leftOarYAngle = -1 * Math.cos(t / 300) * 45 - 45;
+    let leftOarXAngle = Math.cos(Math.PI + t / 300) * 5 - 5;
 
 
     //modelMatrix for all boat-related objects
-    modelMatrix.setTranslate(boatX, 40, 1.3);
-    modelMatrix.scale(.5, .5, .5);
+    modelMatrix.setTranslate(boatX, 40, 1.15);
+    modelMatrix.scale(.3, .3, .3);
     mvpMatrix.set(projMatrix).multiply(viewMatrix).multiply(modelMatrix);
     gl.uniformMatrix4fv(u_mvpMatrix, false, mvpMatrix.elements);
     drawModel(gl, "boat", indices);
