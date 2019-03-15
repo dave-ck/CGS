@@ -3,12 +3,20 @@
 var VSHADER_SOURCE =
     'attribute vec4 a_Position;\n' +
     'attribute vec4 a_Color;\n' +
+    'attribute vec4 a_Normal;\n' +
     'uniform mat4 u_ModelMatrix;\n' +
     'uniform mat4 u_mvpMatrix;\n' +
+    'uniform vec3 u_LightColor;\n' +
+    'uniform vec3 u_LightDirection;\n' +
+    'uniform vec3 u_AmbientLight;\n' +   // Color of an ambient light
     'varying vec4 v_Color;\n' +
     'void main() {\n' +
     '  gl_Position = u_mvpMatrix * a_Position;\n' +
-    '  v_Color = a_Color;\n' +
+    '  vec3 normal = normalize(vec3(a_Normal));\n' +
+    '  float nDotL = max(dot(u_LightDirection, normal), 0.0);\n' +
+    '  vec3 ambient = u_AmbientLight * a_Color.rgb;\n' +
+    '  vec3 diffuse = u_LightColor * vec3(a_Color) * nDotL;\n' +
+    '  v_Color = vec4(diffuse + ambient, a_Color.a);\n' +
     '}\n';
 
 // Fragment shader program
@@ -45,8 +53,7 @@ let lookAlongY = 0;
 //let lookAlongZ = 0;   //unused
 let look_Angle = 0;     // in radians (JS Math package uses)
 
-function keydown(ev, gl, u_ViewProjMatrix, u_ModelMatrix) {
-    console.log(ev.key);
+function keydown(ev) {
     lookAlongX = Math.cos(look_Angle);
     lookAlongY = Math.sin(look_Angle);
     switch (ev.key) {
@@ -89,8 +96,7 @@ function keydown(ev, gl, u_ViewProjMatrix, u_ModelMatrix) {
     eyeX = Math.min(eyeX, 200);
     eyeY = Math.max(eyeY, 1);
     eyeY = Math.min(eyeY, 100);
-    // Draw the scene
-    //draw(gl, u_ViewProjMatrix, u_ModelMatrix);
+    // updates values - scene drawn periodically by tick();
 }
 
 function main() {
@@ -111,20 +117,33 @@ function main() {
         return;
     }
     //Set clear color and enable the hidden surface removal function
-    gl.clearColor(0, 0, 0, 1);
+    gl.clearColor(135 / 255, 206 / 255, 235 / 255, 1);
     gl.enable(gl.DEPTH_TEST);
 
-    // Get the storage locations of u_ViewProjMatrix
+    // Get storage locations
     var u_mvpMatrix = gl.getUniformLocation(gl.program, 'u_mvpMatrix');
+    var u_LightColor = gl.getUniformLocation(gl.program, 'u_LightColor');
+    var u_LightDirection = gl.getUniformLocation(gl.program, 'u_LightDirection');
+    var u_AmbientLight = gl.getUniformLocation(gl.program, 'u_AmbientLight');
+    if (!u_mvpMatrix || !u_LightColor || !u_LightDirection || !u_AmbientLight) {
+        console.log('Failed to get the storage location');
+        console.log('u_AmbientLight: ' + u_AmbientLight);
+        console.log('u_LightDirection: ' + u_LightDirection);
+        return;
+    }
+    gl.uniform3f(u_LightColor, 1.0, 1.0, 1.0);
+    var lightDirection = new Vector3([-0.5, -3.0, 4.0]);
+    lightDirection.normalize();
+    gl.uniform3fv(u_LightDirection, lightDirection.elements);
+    gl.uniform3f(u_AmbientLight, .3, .3, .3);
 
-    // Pass the view projection matrix to u_ViewProjMatrix
 
-    indices = initVertexBuffersFromModels(gl, 1, 0, 1);
+    indices = initConstantsFromModels(gl);
 
     document.onkeydown = function (ev) {
         keydown(ev, gl, u_mvpMatrix); //, u_ModelMatrix, u_NormalMatrix, u_isLighting);
     };
-    var tick = function() {
+    var tick = function () {
         draw(gl, u_mvpMatrix);
         requestAnimationFrame(tick);
     };
@@ -143,7 +162,6 @@ function draw(gl, u_mvpMatrix) {
     mvpMatrix.set(projMatrix).multiply(viewMatrix).multiply(modelMatrix);
     gl.uniformMatrix4fv(u_mvpMatrix, false, mvpMatrix.elements);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-    gl.drawArrays(gl.LINES, indices.axes.start, indices.axes.len);
     drawModel(gl, "river", indices);
     drawModel(gl, "branches1", indices);
     drawModel(gl, "leaves1", indices);
@@ -159,17 +177,18 @@ function draw(gl, u_mvpMatrix) {
     let t = Date.now() % 30000;
 
     // boat position is a function of time; loops (teleports back to start) every 30 seconds
-    let boatX = 45+ 100*t/30000; boatX = 75 + (boatX % 10);
-    let oarZAngle = Math.sin(t/300)*60;
-    let oarYAngle = -1* Math.cos(t/300)*45-45;
-    let oarXAngle = Math.cos(t/300)*20-5;
-    let leftOarZAngle = Math.sin(Math.PI+t/300)*60;
-    let leftOarYAngle = -1* Math.cos(Math.PI+t/300)*45-45;
-    let leftOarXAngle = Math.cos(Math.PI+t/300)*20-5;
+    let boatX = 45 + 100 * t / 30000;
+    boatX = 45 + (boatX % 100);
+    let oarZAngle = Math.sin(t / 300) * 60;
+    let oarYAngle = -1 * Math.cos(t / 300) * 45 - 45;
+    let oarXAngle = Math.cos(t / 300) * 20 - 5;
+    let leftOarZAngle = Math.sin(Math.PI + t / 300) * 60;
+    let leftOarYAngle = -1 * Math.cos(Math.PI + t / 300) * 45 - 45;
+    let leftOarXAngle = Math.cos(Math.PI + t / 300) * 20 - 5;
 
     //modelMatrix for all boat-related objects
     modelMatrix.setTranslate(boatX, 40, 1.3);
-    modelMatrix.scale(.5,.5,.5);
+    modelMatrix.scale(.5, .5, .5);
     mvpMatrix.set(projMatrix).multiply(viewMatrix).multiply(modelMatrix);
     gl.uniformMatrix4fv(u_mvpMatrix, false, mvpMatrix.elements);
     drawModel(gl, "boat", indices);
@@ -177,9 +196,9 @@ function draw(gl, u_mvpMatrix) {
 
 
     // oar 1
-    modelMatrix.rotate(-1 * oarZAngle, 0,0,1);
-    modelMatrix.rotate(oarXAngle, 1,0,0);
-    modelMatrix.rotate(oarYAngle, 0,1,0);
+    modelMatrix.rotate(-1 * oarZAngle, 0, 0, 1);
+    modelMatrix.rotate(oarXAngle, 1, 0, 0);
+    modelMatrix.rotate(oarYAngle, 0, 1, 0);
     mvpMatrix.set(projMatrix).multiply(viewMatrix).multiply(modelMatrix);
     gl.uniformMatrix4fv(u_mvpMatrix, false, mvpMatrix.elements);
     drawModel(gl, "oar", indices);
@@ -187,11 +206,11 @@ function draw(gl, u_mvpMatrix) {
     pushMatrix(modelMatrix);
 
     // oar 2
-    modelMatrix.translate(2,4,0);
-    modelMatrix.rotate(180, 1,0,0);
-    modelMatrix.rotate(leftOarZAngle, 0,0,1);
-    modelMatrix.rotate(leftOarXAngle, 1,0,0);
-    modelMatrix.rotate(leftOarYAngle*-1, 0,1,0);
+    modelMatrix.translate(2, 4, 0);
+    modelMatrix.rotate(180, 1, 0, 0);
+    modelMatrix.rotate(leftOarZAngle, 0, 0, 1);
+    modelMatrix.rotate(leftOarXAngle, 1, 0, 0);
+    modelMatrix.rotate(leftOarYAngle * -1, 0, 1, 0);
     mvpMatrix.set(projMatrix).multiply(viewMatrix).multiply(modelMatrix);
     gl.uniformMatrix4fv(u_mvpMatrix, false, mvpMatrix.elements);
     drawModel(gl, "oar", indices);
@@ -199,21 +218,21 @@ function draw(gl, u_mvpMatrix) {
     pushMatrix(modelMatrix);
     // a comment
     // oar 3
-    modelMatrix.translate(4,0,0);
-    modelMatrix.rotate(-1 * oarZAngle, 0,0,1);
-    modelMatrix.rotate(oarXAngle, 1,0,0);
-    modelMatrix.rotate(oarYAngle, 0,1,0);
+    modelMatrix.translate(4, 0, 0);
+    modelMatrix.rotate(-1 * oarZAngle, 0, 0, 1);
+    modelMatrix.rotate(oarXAngle, 1, 0, 0);
+    modelMatrix.rotate(oarYAngle, 0, 1, 0);
     mvpMatrix.set(projMatrix).multiply(viewMatrix).multiply(modelMatrix);
     gl.uniformMatrix4fv(u_mvpMatrix, false, mvpMatrix.elements);
     drawModel(gl, "oar", indices);
     modelMatrix = popMatrix();
 
     // oar 4
-    modelMatrix.translate(6,4,0);
-    modelMatrix.rotate(180, 1,0,0);
-    modelMatrix.rotate(leftOarZAngle, 0,0,1);
-    modelMatrix.rotate(leftOarXAngle, 1,0,0);
-    modelMatrix.rotate(leftOarYAngle*-1, 0,1,0);
+    modelMatrix.translate(6, 4, 0);
+    modelMatrix.rotate(180, 1, 0, 0);
+    modelMatrix.rotate(leftOarZAngle, 0, 0, 1);
+    modelMatrix.rotate(leftOarXAngle, 1, 0, 0);
+    modelMatrix.rotate(leftOarYAngle * -1, 0, 1, 0);
     mvpMatrix.set(projMatrix).multiply(viewMatrix).multiply(modelMatrix);
     gl.uniformMatrix4fv(u_mvpMatrix, false, mvpMatrix.elements);
     drawModel(gl, "oar", indices);
@@ -261,18 +280,11 @@ function randColor(vertices) {
 }
 
 
-function initVertexBuffersFromModels(gl) {
-    let concatenated = [
-        // Vertex coordinates and color (for axes)
-        -200.0, 0.0, 0.0, 1.0, 0, 0, //v1
-        200.0, 0.0, 0.0, 1.0, 0, 0, //v2
-        0.0, 200.0, 0.0, 0, 1, 0, //v3
-        0.0, -200.0, 0.0, 0, 1, 0, //v4
-        0.0, 0.0, -200.0, 0, 0, 1, //v5
-        0.0, 0.0, 200.0, 0, 0, 1,  //v6
-    ];
-    let indices = {axes: {start: 0, len: 6}};
-    let i = 6;
+function initConstantsFromModels(gl) {
+    let verticesColorsTemp = [];
+    let normalTemp = [];
+    let indices = {};
+    let i = 0;
     // initialized non-empty to facilitate testing and debugging
 
     for (let key in models) {
@@ -335,32 +347,27 @@ function initVertexBuffersFromModels(gl) {
                 default:
                     console.log("Proceeding with random coloration.");
             }
-
             let colored = color(models[key].vertices, r, g, b);  // red by default, can use switch case to color differently
-            concatenated = concatenated.concat(colored);
+            verticesColorsTemp = verticesColorsTemp.concat(colored);
+            normalTemp = normalTemp.concat(models[key].normals);
             indices[key] = {};
             indices[key].start = i;
             indices[key].len = colored.length / 6;
             i += colored.length / 6;
         }
     }
-    //console.log(concatenated.slice(indices.pointy.start, indices.pointy.len + indices.pointy.start));
-    var verticesColors = new Float32Array(concatenated);
-    console.log("VerticesColors:");
-    console.log(verticesColors);
-    console.log("" + indices.river.start + "," + indices.river.len);
-    console.log(verticesColors.slice(indices.river.start * 6, (indices.river.start + indices.river.len) * 6));
+    var verticesColors = new Float32Array(verticesColorsTemp);
+    var normals = new Float32Array(normalTemp);
     // Create a buffer object
     var vertexColorbuffer = gl.createBuffer();
     if (!vertexColorbuffer) {
         console.log('Failed to create the buffer object');
         return -1;
     }
-
+    if (!initArrayBuffer(gl, 'a_Normal', normals, 3, gl.FLOAT)) return -1;
     // Write the vertex coordinates and color to the buffer object
     gl.bindBuffer(gl.ARRAY_BUFFER, vertexColorbuffer);
     gl.bufferData(gl.ARRAY_BUFFER, verticesColors, gl.STATIC_DRAW);
-
     var FSIZE = verticesColors.BYTES_PER_ELEMENT;
     // Assign the buffer object to a_Position and enable the assignment
     var a_Position = gl.getAttribLocation(gl.program, 'a_Position');
@@ -378,18 +385,43 @@ function initVertexBuffersFromModels(gl) {
     }
     gl.vertexAttribPointer(a_Color, 3, gl.FLOAT, false, FSIZE * 6, FSIZE * 3);
     gl.enableVertexAttribArray(a_Color);
-
-
     return indices;
 }
 
 
+function initArrayBuffer(gl, attribute, data, num, type) {
+    // Create a buffer object
+    var buffer = gl.createBuffer();
+    if (!buffer) {
+        console.log('Failed to create the buffer object');
+        return false;
+    }
+    // Write date into the buffer object
+    gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+    gl.bufferData(gl.ARRAY_BUFFER, data, gl.STATIC_DRAW);
+    // Assign the buffer object to the attribute variable
+    var a_attribute = gl.getAttribLocation(gl.program, attribute);
+    if (a_attribute < 0) {
+        console.log('Failed to get the storage location of ' + attribute);
+        return false;
+    }
+    gl.vertexAttribPointer(a_attribute, num, type, false, 0, 0);
+    // Enable the assignment of the buffer object to the attribute variable
+    gl.enableVertexAttribArray(a_attribute);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, null);
+
+    return true;
+}
+
+
 var g_matrixStack = [];
-function pushMatrix(matrix){
+
+function pushMatrix(matrix) {
     let mprime = new Matrix4(matrix);
     g_matrixStack.push(mprime);
 }
 
-function popMatrix(){
+function popMatrix() {
     return g_matrixStack.pop();
 }
