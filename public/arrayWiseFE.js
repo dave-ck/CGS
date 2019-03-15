@@ -22,14 +22,19 @@ var FSHADER_SOURCE =
     '}\n';
 
 let models = undefined;
+document.getElementById("hello").hidden = true;
+
 // load STL models from serverside
 $.get("./models", function (model_data) {
     models = model_data;
-    main();
     document.getElementById("info").hidden = true;
+    document.getElementById("hello").hidden = false;
+
+    main();
 
 });
 
+let last = Date.now();
 let ANGLE_DELTA = 0.03; //controls rate at which viewpoint turns
 let indices = null;
 let eyeX = 0;
@@ -62,12 +67,12 @@ function keydown(ev, gl, u_ViewProjMatrix, u_ModelMatrix) {
             eyeY += Math.sin(look_Angle);
             break;
         case "a":   // move left
-            eyeX += Math.cos(look_Angle+Math.PI/2);
-            eyeY += Math.sin(look_Angle+Math.PI/2);
+            eyeX += Math.cos(look_Angle + Math.PI / 2);
+            eyeY += Math.sin(look_Angle + Math.PI / 2);
             break;
         case "d":   // move right
-            eyeX += Math.cos(look_Angle-Math.PI/2);
-            eyeY += Math.sin(look_Angle-Math.PI/2);
+            eyeX += Math.cos(look_Angle - Math.PI / 2);
+            eyeY += Math.sin(look_Angle - Math.PI / 2);
             break;
         case "s":   // move back
             eyeX -= Math.cos(look_Angle);
@@ -85,9 +90,8 @@ function keydown(ev, gl, u_ViewProjMatrix, u_ModelMatrix) {
     eyeY = Math.max(eyeY, 1);
     eyeY = Math.min(eyeY, 100);
     // Draw the scene
-    draw(gl, u_ViewProjMatrix, u_ModelMatrix);
+    //draw(gl, u_ViewProjMatrix, u_ModelMatrix);
 }
-
 
 function main() {
 
@@ -119,7 +123,12 @@ function main() {
 
     document.onkeydown = function (ev) {
         keydown(ev, gl, u_mvpMatrix); //, u_ModelMatrix, u_NormalMatrix, u_isLighting);
-    }
+    };
+    var tick = function() {
+        draw(gl, u_mvpMatrix);
+        requestAnimationFrame(tick);
+    };
+    tick();
 }
 
 function draw(gl, u_mvpMatrix) {
@@ -130,7 +139,7 @@ function draw(gl, u_mvpMatrix) {
     projMatrix.setPerspective(45, 800 / 600, 1, 1000);
     viewMatrix.setLookAt(eyeX, eyeY, eyeZ, eyeX + lookAlongX, eyeY + lookAlongY, eyeZ, 0, 0, 1);
     //gl.uniformMatrix4fv(u_ViewProjMatrix, false, viewProjMatrix.elements);
-    modelMatrix.setTranslate(0,0,0);
+    modelMatrix.setTranslate(0, 0, 0);
     mvpMatrix.set(projMatrix).multiply(viewMatrix).multiply(modelMatrix);
     gl.uniformMatrix4fv(u_mvpMatrix, false, mvpMatrix.elements);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
@@ -138,14 +147,17 @@ function draw(gl, u_mvpMatrix) {
     drawModel(gl, "river", indices);
     drawModel(gl, "branches1", indices);
     drawModel(gl, "leaves1", indices);
+    drawModel(gl, "branches2", indices);
+    drawModel(gl, "leaves2", indices);
     drawModel(gl, "slopes", indices);
     drawModel(gl, "riverBank", indices);
     drawModel(gl, "footPath", indices);
     drawModel(gl, "bridge", indices);
 
+
     // movement
 
-    modelMatrix.setTranslate(0,0,20);
+    modelMatrix.setTranslate(0, 0, 20);
     mvpMatrix.set(projMatrix).multiply(viewMatrix).multiply(modelMatrix);
     gl.uniformMatrix4fv(u_mvpMatrix, false, mvpMatrix.elements);
     drawModel(gl, "boat", indices);
@@ -218,6 +230,11 @@ function initVertexBuffersFromModels(gl) {
                     g = 115 / 255;
                     b = 17 / 255;
                     break;
+                case "branches2":
+                    r = 66 / 255;
+                    g = 37 / 255;
+                    b = 24 / 255;
+                    break;
                 case "river":
                     r = 17 / 255;
                     g = 90 / 255;
@@ -232,6 +249,11 @@ function initVertexBuffersFromModels(gl) {
                     r = 0 / 255;
                     g = 128 / 255;
                     b = 0 / 255;
+                    break;
+                case "leaves2":
+                    r = 34 / 255;
+                    g = 139 / 255;
+                    b = 34 / 255;
                     break;
                 case "slopes":
                     r = 34 / 255;

@@ -5,12 +5,19 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
     <title>Computer Graphics Summative rpxp63</title>
 </head>
-<p id="info"> Please wait ~5-10 seconds while models are loaded in. This yellow triangle will keep you company </p>
+<p id="info"> Please wait while models are loaded. This may take up to 15 seconds. </p>
+<p id="hello"> Models successfully loaded! </p>
 <body>
-<canvas id="webgl" width="800" height="600" style="position: absolute; z-index: 0">
+<canvas id="webgl" width="800" height="600">
     Please use a browser that supports "canvas"
 </canvas>
-<canvas id="hud" width="800" height="600" style="position: absolute; z-index: 1"></canvas>
+<p> Commands:</p>
+<p> WASD to move forwards/left/backwards/right</p>
+<p> Q, E to turn left and right respectively</p>
+<p> Space to go up, x to go down</p>
+<p> TODO B to go to the boat (hold to follow it!)</p>
+<p> TODO R to set the boat back to the start (it'll just hang out at the end of the river otherwise). </p>
+
 
 <script src="./lib/webgl-utils.js"></script>
 <script src="./lib/webgl-debug.js"></script>

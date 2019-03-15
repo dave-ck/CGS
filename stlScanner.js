@@ -61,22 +61,20 @@ function readSTL(source_path) {
     let data = fs.readFileSync(source_path, 'utf-8');
     let vertices = [];
     let normals = [];
-    let indices = [];       //completely redundant in this case, can be optimized if rendering per-frame becomes slow
     let facetArray = data.split("endfacet\r\n  facet");
     //console.log(facetArray.slice(0,10));
     // facet0 requires special processing - need to remove header info
     facetArray[0] = facetArray[0].slice(29);
-    let indexCount = 0;
+    let facetCount = 0;
     facetArray.forEach(function (facetString, index) {
         let facet = processFacet(facetString, index);
         vertices = vertices.concat(facet.vertices);
         normals = normals.concat(facet.normals);
-        indices.push(indexCount++);
-        indices.push(indexCount++);
-        indices.push(indexCount++);
+        facetCount++;
+        if (!(facetCount%10000)) console.log(facetCount);
     });
     // normals may be wrong, but aren't causing current bug (not used in present rendering)
-    return {normals: normals, vertices: vertices, indices: indices};
+    return {normals: normals, vertices: vertices};
 }
 
 
