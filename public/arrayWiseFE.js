@@ -155,18 +155,22 @@ function draw(gl, u_mvpMatrix) {
     drawModel(gl, "bridge", indices);
 
 
-    // movement
-
-    modelMatrix.setTranslate(0, 0, 20);
+    // MOVEMENT FOR THE BOAT
+    let t = Date.now() % 30000;
+    // boat position is a function of time; loops (teleports back to start) every 30 seconds
+    let boatX = 45+ 100*t/30000;
+    modelMatrix.setTranslate(boatX, 40, 1.3);
+    modelMatrix.scale(.5,.5,.5);
     mvpMatrix.set(projMatrix).multiply(viewMatrix).multiply(modelMatrix);
     gl.uniformMatrix4fv(u_mvpMatrix, false, mvpMatrix.elements);
     drawModel(gl, "boat", indices);
+    drawModel(gl, "oar", indices);
 }
+
 
 function drawModel(gl, modelKey, indices) {
     gl.drawArrays(gl.TRIANGLES, indices[modelKey].start, indices[modelKey].len);
 }
-
 
 /** @return Array consisting of input set of vertices with r,g,b interleaved;
  * v0x, v0y, v0z, r,g,b
@@ -256,9 +260,9 @@ function initVertexBuffersFromModels(gl) {
                     b = 34 / 255;
                     break;
                 case "slopes":
-                    r = 34 / 255;
-                    g = 139 / 255;
-                    b = 34 / 255;
+                    r = 86 / 255;
+                    g = 140 / 255;
+                    b = 33 / 255;
                     break;
                 case "footPath":
                     r = 128 / 255;
@@ -270,6 +274,7 @@ function initVertexBuffersFromModels(gl) {
                     g = 128 / 255;
                     b = 128 / 255;
                     break;
+                case "oar":
                 case "boat":
                     r = 196 / 255;
                     g = 196 / 255;
