@@ -35,11 +35,11 @@ $.get("./models", function (model_data) {
 });
 
 let last = Date.now();
-let ANGLE_DELTA = 0.03; //controls rate at which viewpoint turns
+let ANGLE_DELTA = 0.1; //controls rate at which viewpoint turns
 let indices = null;
-let eyeX = 0;
-let eyeY = 50;
-let eyeZ = 10;
+let eyeX = 67;
+let eyeY = 40.6;
+let eyeZ = 5;
 let lookAlongX = 1;
 let lookAlongY = 0;
 //let lookAlongZ = 0;   //unused
@@ -84,7 +84,7 @@ function keydown(ev, gl, u_ViewProjMatrix, u_ModelMatrix) {
 
     // keep user inside the box
     eyeZ = Math.min(eyeZ, 15);
-    eyeZ = Math.max(eyeZ, 1);
+    eyeZ = Math.max(eyeZ, 1.2);
     eyeX = Math.max(eyeX, 1);
     eyeX = Math.min(eyeX, 200);
     eyeY = Math.max(eyeY, 1);
@@ -157,13 +157,65 @@ function draw(gl, u_mvpMatrix) {
 
     // MOVEMENT FOR THE BOAT
     let t = Date.now() % 30000;
+
     // boat position is a function of time; loops (teleports back to start) every 30 seconds
-    let boatX = 45+ 100*t/30000;
+    let boatX = 45+ 100*t/30000; boatX = 75 + (boatX % 10);
+    let oarZAngle = Math.sin(t/300)*60;
+    let oarYAngle = -1* Math.cos(t/300)*45-45;
+    let oarXAngle = Math.cos(t/300)*20-5;
+    let leftOarZAngle = Math.sin(Math.PI+t/300)*60;
+    let leftOarYAngle = -1* Math.cos(Math.PI+t/300)*45-45;
+    let leftOarXAngle = Math.cos(Math.PI+t/300)*20-5;
+
+    //modelMatrix for all boat-related objects
     modelMatrix.setTranslate(boatX, 40, 1.3);
     modelMatrix.scale(.5,.5,.5);
     mvpMatrix.set(projMatrix).multiply(viewMatrix).multiply(modelMatrix);
     gl.uniformMatrix4fv(u_mvpMatrix, false, mvpMatrix.elements);
     drawModel(gl, "boat", indices);
+    pushMatrix(modelMatrix);
+
+
+    // oar 1
+    modelMatrix.rotate(-1 * oarZAngle, 0,0,1);
+    modelMatrix.rotate(oarXAngle, 1,0,0);
+    modelMatrix.rotate(oarYAngle, 0,1,0);
+    mvpMatrix.set(projMatrix).multiply(viewMatrix).multiply(modelMatrix);
+    gl.uniformMatrix4fv(u_mvpMatrix, false, mvpMatrix.elements);
+    drawModel(gl, "oar", indices);
+    modelMatrix = popMatrix();
+    pushMatrix(modelMatrix);
+
+    // oar 2
+    modelMatrix.translate(2,4,0);
+    modelMatrix.rotate(180, 1,0,0);
+    modelMatrix.rotate(leftOarZAngle, 0,0,1);
+    modelMatrix.rotate(leftOarXAngle, 1,0,0);
+    modelMatrix.rotate(leftOarYAngle*-1, 0,1,0);
+    mvpMatrix.set(projMatrix).multiply(viewMatrix).multiply(modelMatrix);
+    gl.uniformMatrix4fv(u_mvpMatrix, false, mvpMatrix.elements);
+    drawModel(gl, "oar", indices);
+    modelMatrix = popMatrix();
+    pushMatrix(modelMatrix);
+
+    // oar 3
+    modelMatrix.translate(4,0,0);
+    modelMatrix.rotate(-1 * oarZAngle, 0,0,1);
+    modelMatrix.rotate(oarXAngle, 1,0,0);
+    modelMatrix.rotate(oarYAngle, 0,1,0);
+    mvpMatrix.set(projMatrix).multiply(viewMatrix).multiply(modelMatrix);
+    gl.uniformMatrix4fv(u_mvpMatrix, false, mvpMatrix.elements);
+    drawModel(gl, "oar", indices);
+    modelMatrix = popMatrix();
+
+    // oar 4
+    modelMatrix.translate(6,4,0);
+    modelMatrix.rotate(180, 1,0,0);
+    modelMatrix.rotate(leftOarZAngle, 0,0,1);
+    modelMatrix.rotate(leftOarXAngle, 1,0,0);
+    modelMatrix.rotate(leftOarYAngle*-1, 0,1,0);
+    mvpMatrix.set(projMatrix).multiply(viewMatrix).multiply(modelMatrix);
+    gl.uniformMatrix4fv(u_mvpMatrix, false, mvpMatrix.elements);
     drawModel(gl, "oar", indices);
 }
 
@@ -329,4 +381,15 @@ function initVertexBuffersFromModels(gl) {
 
 
     return indices;
+}
+
+
+var g_matrixStack = [];
+function pushMatrix(matrix){
+    let mprime = new Matrix4(matrix);
+    g_matrixStack.push(mprime);
+}
+
+function popMatrix(){
+    return g_matrixStack.pop();
 }
