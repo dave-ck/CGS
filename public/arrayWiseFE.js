@@ -171,6 +171,11 @@ function draw(gl, u_mvpMatrix) {
     drawModel(gl, "riverBank", indices);
     drawModel(gl, "footPath", indices);
     drawModel(gl, "bridge", indices);
+    drawModel(gl, "green", indices);
+    drawModel(gl, "brick", indices);
+    drawModel(gl, "white", indices);
+    drawModel(gl, "slate", indices);
+    drawModel(gl, "red", indices);
 
 
     // MOVEMENT FOR THE BOAT
@@ -339,10 +344,33 @@ function initConstantsFromModels(gl) {
                     b = 128 / 255;
                     break;
                 case "oar":
+                case "white":
                 case "boat":
                     r = 196 / 255;
                     g = 196 / 255;
                     b = 196 / 255;
+                    break;
+                case "brick":
+                    console.log("brick loaded");
+                    r = 202 / 255;
+                    g = 65 / 255;
+                    b = 84 / 255;
+                    break;
+                case "slate":
+                    console.log("brick loaded");
+                    r = 112 / 511;
+                    g = 128 / 511;
+                    b = 144 / 511;
+                    break;
+                case "green":
+                    r = 20 / 255;
+                    g = 196 / 255;
+                    b = 20 / 255;
+                    break;
+                case "red":
+                    r = 255 / 255;
+                    g = 0 / 255;
+                    b = 0 / 255;
                     break;
                 default:
                     console.log("Proceeding with random coloration.");
