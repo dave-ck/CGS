@@ -57,7 +57,7 @@ function keydown(ev) {
     lookAlongX = Math.cos(look_Angle);
     lookAlongY = Math.sin(look_Angle);
     switch (ev.key) {
-        case " ":
+        case "c":
             eyeZ++;
             break;
         case "x":
@@ -184,12 +184,14 @@ function draw(gl, u_mvpMatrix) {
     // boat position is a function of time; loops (teleports back to start) every 30 seconds
     let boatX = 45 + 100 * t / 30000;
     boatX = 45 + (boatX % 100);
+    boatX = 75 + (boatX % 20);
     let oarZAngle = Math.sin(t / 300) * 60;
     let oarYAngle = -1 * Math.cos(t / 300) * 45 - 45;
-    let oarXAngle = Math.cos(t / 300) * 20 - 5;
+    let oarXAngle = Math.cos(t / 300) * 10 + 10;
     let leftOarZAngle = Math.sin(Math.PI + t / 300) * 60;
     let leftOarYAngle = -1 * Math.cos(Math.PI + t / 300) * 45 - 45;
-    let leftOarXAngle = Math.cos(Math.PI + t / 300) * 20 - 5;
+    let leftOarXAngle = Math.cos(Math.PI + t / 300) * 10 - 10;
+
 
     //modelMatrix for all boat-related objects
     modelMatrix.setTranslate(boatX, 40, 1.3);
