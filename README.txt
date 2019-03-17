@@ -1,6 +1,6 @@
 To run: 
 In the root directory "cgs-master", in command line:
-- npm install
+- npm install express
 - node index.js
 Wait for the text "Ready to .get()." to appear.
 Navigate to "localhost:8080" in a browser (tested with Firefox and Chrome), and allow up to 15 seconds for models to be loaded in.
