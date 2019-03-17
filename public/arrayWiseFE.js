@@ -37,9 +37,7 @@ $.get("./models", function (model_data) {
     models = model_data;
     document.getElementById("info").hidden = true;
     document.getElementById("hello").hidden = false;
-
     main();
-
 });
 
 let last = Date.now();

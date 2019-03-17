@@ -9,10 +9,13 @@ lowR = 0.8;
 upR = 1.2;
 killRatio = 1.7; // number of branches killed per surviving branch - needs to be < 3 to probabilistically allow for full tree
 
+//tree(0,0,0.9, true, true, 1);
+
 //main();
 //boatHouses(brick=false, slate=false, greenpaint=false, redpaint=false, whitepaint=true);
 //main();
-bridge();
+//posdbridge();
+boat();
 
 module boatHouses(brick=true, slate=true, greenpaint=true, redpaint=true, whitepaint=true){
     translate([28,80.5,1]){
@@ -147,11 +150,11 @@ module fence(){
     }}
 
 module innerPillar(x){
-        translate([0.5,x,0]) 
+        translate([0.5,x,5.2]) 
         scale([1.6,0.707,1])
         rotate([0,0,45])
         cube([2,2,6.2]);
-    translate([3.5,x,0]) 
+    translate([3.5,x,5.2]) 
         scale([1.6,0.707,1])
         rotate([0,0,45])
         cube([2,2,6.2]);
@@ -203,7 +206,6 @@ module eastNorthTrees(n, branches=true, leaves=true, scale=1, seed=0){
         tree(xs[i], ys[i], (0.1*xs[i])-47+(5.9*ys[i])/11, branches, leaves, scale, seed=seed);
         }
 }
-
 
 
 
